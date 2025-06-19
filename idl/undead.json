@@ -1,0 +1,637 @@
+{
+  "address": "EZcvBzT1Vje7DxU8pi8YRwKsRzBv47v3q5cGmQUpPpNb",
+  "metadata": {
+    "name": "undead",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Created with Anchor"
+  },
+  "instructions": [
+    {
+      "name": "battle_warriors",
+      "discriminator": [
+        0,
+        180,
+        21,
+        137,
+        73,
+        157,
+        12,
+        26
+      ],
+      "accounts": [
+        {
+          "name": "user",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "warrior_a",
+          "writable": true
+        },
+        {
+          "name": "warrior_b",
+          "writable": true
+        },
+        {
+          "name": "profile_a",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  102,
+                  105,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "warrior_a.owner",
+                "account": "UndeadWarrior"
+              }
+            ]
+          }
+        },
+        {
+          "name": "profile_b",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  102,
+                  105,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "warrior_b.owner",
+                "account": "UndeadWarrior"
+              }
+            ]
+          }
+        },
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "create_warrior",
+      "discriminator": [
+        163,
+        157,
+        34,
+        175,
+        170,
+        146,
+        80,
+        103
+      ],
+      "accounts": [
+        {
+          "name": "user",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "warrior",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  119,
+                  97,
+                  114,
+                  114,
+                  105,
+                  111,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "user"
+              },
+              {
+                "kind": "arg",
+                "path": "name"
+              }
+            ]
+          }
+        },
+        {
+          "name": "user_profile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  102,
+                  105,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "user"
+              }
+            ]
+          }
+        },
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "dna",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "initialize",
+      "discriminator": [
+        175,
+        175,
+        109,
+        31,
+        13,
+        152,
+        155,
+        237
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "admin",
+          "type": "pubkey"
+        }
+      ]
+    },
+    {
+      "name": "pause_game",
+      "discriminator": [
+        133,
+        116,
+        165,
+        66,
+        173,
+        81,
+        10,
+        85
+      ],
+      "accounts": [
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "admin",
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "paused",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "update_achievements",
+      "discriminator": [
+        218,
+        177,
+        159,
+        24,
+        144,
+        26,
+        79,
+        60
+      ],
+      "accounts": [
+        {
+          "name": "user",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "achievements",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  99,
+                  104,
+                  105,
+                  101,
+                  118,
+                  101,
+                  109,
+                  101,
+                  110,
+                  116,
+                  115
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "user"
+              }
+            ]
+          }
+        },
+        {
+          "name": "user_profile",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  102,
+                  105,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "user"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    }
+  ],
+  "accounts": [
+    {
+      "name": "GameConfig",
+      "discriminator": [
+        45,
+        146,
+        146,
+        33,
+        170,
+        69,
+        96,
+        133
+      ]
+    },
+    {
+      "name": "UndeadWarrior",
+      "discriminator": [
+        221,
+        104,
+        254,
+        146,
+        1,
+        24,
+        0,
+        118
+      ]
+    },
+    {
+      "name": "UserAchievements",
+      "discriminator": [
+        113,
+        223,
+        157,
+        75,
+        204,
+        112,
+        2,
+        207
+      ]
+    },
+    {
+      "name": "UserProfile",
+      "discriminator": [
+        32,
+        37,
+        119,
+        205,
+        179,
+        180,
+        13,
+        194
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "InvalidName",
+      "msg": "Invalid warrior name"
+    },
+    {
+      "code": 6001,
+      "name": "InvalidDna",
+      "msg": "DNA must be exactly 8 characters"
+    },
+    {
+      "code": 6002,
+      "name": "GamePaused",
+      "msg": "Game is currently paused"
+    },
+    {
+      "code": 6003,
+      "name": "SameWarriorBattle",
+      "msg": "Cannot battle with the same warrior"
+    },
+    {
+      "code": 6004,
+      "name": "Unauthorized",
+      "msg": "Unauthorized: Only admin can perform this action"
+    }
+  ],
+  "types": [
+    {
+      "name": "AchievementLevel",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "None"
+          },
+          {
+            "name": "Bronze"
+          },
+          {
+            "name": "Silver"
+          },
+          {
+            "name": "Gold"
+          },
+          {
+            "name": "Platinum"
+          },
+          {
+            "name": "Diamond"
+          }
+        ]
+      }
+    },
+    {
+      "name": "GameConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "total_warriors_created",
+            "type": "u32"
+          },
+          {
+            "name": "total_battles_fought",
+            "type": "u32"
+          },
+          {
+            "name": "initialized_at",
+            "type": "i64"
+          },
+          {
+            "name": "is_paused",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "UndeadWarrior",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "name",
+            "type": "string"
+          },
+          {
+            "name": "dna",
+            "type": "string"
+          },
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "power_level",
+            "type": "u32"
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          },
+          {
+            "name": "battle_wins",
+            "type": "u32"
+          },
+          {
+            "name": "battles_fought",
+            "type": "u32"
+          },
+          {
+            "name": "experience_points",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "UserAchievements",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "warrior_creator",
+            "type": {
+              "defined": {
+                "name": "AchievementLevel"
+              }
+            }
+          },
+          {
+            "name": "battle_winner",
+            "type": {
+              "defined": {
+                "name": "AchievementLevel"
+              }
+            }
+          },
+          {
+            "name": "battle_fighter",
+            "type": {
+              "defined": {
+                "name": "AchievementLevel"
+              }
+            }
+          },
+          {
+            "name": "first_warrior_date",
+            "type": "i64"
+          },
+          {
+            "name": "first_victory_date",
+            "type": "i64"
+          },
+          {
+            "name": "total_score",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "UserProfile",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "owner",
+            "type": "pubkey"
+          },
+          {
+            "name": "warriors_created",
+            "type": "u32"
+          },
+          {
+            "name": "total_battles_won",
+            "type": "u32"
+          },
+          {
+            "name": "total_battles_fought",
+            "type": "u32"
+          },
+          {
+            "name": "join_date",
+            "type": "i64"
+          }
+        ]
+      }
+    }
+  ]
+}
