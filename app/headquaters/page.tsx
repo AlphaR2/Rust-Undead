@@ -3,9 +3,10 @@ import React, { useState, useEffect } from "react";
 import { useGameData } from "@/hooks/useGameData";
 import { useNavigation } from "./layout";
 import DashboardPage from "./dashboard/page";
-import { MyWarriors } from "./warriors/page";
-import { Achievements } from "./achievements/page";
-import { WelcomeModal, useTour } from "../components/modal/WelcomeModal";
+import Warriors from "./warriors/page";
+import Achievements from "./achievements/page";
+import WelcomeModal from "../components/modal/WelcomeModal";
+import { useTour } from "../components/modal/WelcomeModal";
 import { Warrior } from "@/types/undead";
 
 interface DashboardProps {
@@ -78,7 +79,7 @@ const HeadQuarters: React.FC<DashboardProps> = ({
         return <DashboardPage onNavigate={handleNavigation} />;
       case "warriors":
         return (
-          <MyWarriors
+          <Warriors
             onBattleSelect={handleBattleSelect}
             onNavigate={handleNavigation}
           />

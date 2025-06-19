@@ -52,8 +52,7 @@ interface NotificationState {
   status: "success" | "error";
   show: boolean;
 }
-
-export const Achievements: React.FC<AchievementsProps> = ({ onNavigate }) => {
+const Achievements: React.FC<AchievementsProps> = ({ onNavigate }) => {
   const { isConnected, publicKey, userWarriors, userProfile, networkInfo } =
     useGameData();
 
@@ -1040,3 +1039,5 @@ export const Achievements: React.FC<AchievementsProps> = ({ onNavigate }) => {
     </div>
   );
 };
+
+export default Achievements;

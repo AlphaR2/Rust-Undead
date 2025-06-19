@@ -25,7 +25,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { usePrivy, useSolanaWallets } from "@privy-io/react-auth";
 import { useGameData } from "../hooks/useGameData";
-import { OnboardingModal } from "./components/modal/Onboarding";
+import OnboardingModal from "./components/modal/Onboarding";
 import Notification from "./components/Notification";
 import { AnimatePresence } from "framer-motion";
 import Link from "next/link";

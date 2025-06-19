@@ -61,7 +61,7 @@ interface QuickTourProps {
 }
 
 
-export const WelcomeModal: React.FC<WelcomeModalProps> = ({
+ const WelcomeModal: React.FC<WelcomeModalProps> = ({
   isOpen,
   onClose,
   newWarriorName,
@@ -1064,3 +1064,5 @@ export const useTour = () => {
     resetTutorial,
   };
 };
+
+export default WelcomeModal;

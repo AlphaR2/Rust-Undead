@@ -47,7 +47,7 @@ interface Skill {
   text: string;
 }
 
-export const OnboardingModal: React.FC<OnboardingModalProps> = ({
+const OnboardingModal: React.FC<OnboardingModalProps> = ({
   isOpen,
   onClose,
   onComplete,
@@ -1100,3 +1100,5 @@ pub struct UndeadWarrior {
     </div>
   );
 };
+
+export default OnboardingModal;

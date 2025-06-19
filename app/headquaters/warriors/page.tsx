@@ -37,8 +37,7 @@ interface NotificationState {
   status: "success" | "error";
   show: boolean;
 }
-
-export const MyWarriors: React.FC<MyWarriorsProps> = ({ onNavigate }) => {
+const Warriors: React.FC<MyWarriorsProps> = ({ onNavigate }) => {
   const {
     isConnected,
     publicKey,
@@ -1107,3 +1106,5 @@ export const MyWarriors: React.FC<MyWarriorsProps> = ({ onNavigate }) => {
     </div>
   );
 };
+
+export default Warriors;
