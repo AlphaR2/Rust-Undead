@@ -25,10 +25,7 @@ import {
   X,
 } from "lucide-react";
 import { useGameData } from "@/hooks/useGameData";
-
-interface AchievementsProps {
-  onNavigate?: (section: string) => void;
-}
+import { useRouter } from "next/navigation";
 
 interface Achievement {
   id: string;
@@ -52,7 +49,8 @@ interface NotificationState {
   status: "success" | "error";
   show: boolean;
 }
-const Achievements: React.FC<AchievementsProps> = ({ onNavigate }) => {
+const Achievements = () => {
+  const router = useRouter();
   const { isConnected, publicKey, userWarriors, userProfile, networkInfo } =
     useGameData();
 
@@ -104,6 +102,10 @@ const Achievements: React.FC<AchievementsProps> = ({ onNavigate }) => {
   // Helper function to show notifications
   const showNotification = (message: string, status: "success" | "error") => {
     setNotification({ message, status, show: true });
+  };
+
+  const handleNavigate = (section: string) => {
+    router.push(`/headquaters/${section}`);
   };
 
   // Copy address to clipboard
@@ -909,7 +911,7 @@ const Achievements: React.FC<AchievementsProps> = ({ onNavigate }) => {
                     Start your journey by creating your first undead warrior
                   </div>
                   <button
-                    onClick={() => onNavigate?.("warriors")}
+                    onClick={() => handleNavigate("warriors")}
                     className="text-sm text-[#cd7f32] hover:text-[#ff8c42] transition-colors font-semibold flex items-center gap-2"
                   >
                     Go to Warriors <Zap className="w-4 h-4" />
@@ -930,7 +932,7 @@ const Achievements: React.FC<AchievementsProps> = ({ onNavigate }) => {
                       Enter the arena and test your warrior's might
                     </div>
                     <button
-                      onClick={() => onNavigate?.("battle")}
+                      onClick={() => handleNavigate("battle")}
                       className="text-sm text-[#cd7f32] hover:text-[#ff8c42] transition-colors font-semibold flex items-center gap-2"
                     >
                       Enter Arena <Shield className="w-4 h-4" />
@@ -951,7 +953,7 @@ const Achievements: React.FC<AchievementsProps> = ({ onNavigate }) => {
                     Army Builder
                   </div>
                   <button
-                    onClick={() => onNavigate?.("warriors")}
+                    onClick={() => handleNavigate("warriors")}
                     className="text-sm text-[#cd7f32] hover:text-[#ff8c42] transition-colors font-semibold flex items-center gap-2"
                   >
                     Forge Warriors <Sword className="w-4 h-4" />

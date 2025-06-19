@@ -21,23 +21,19 @@ import {
   Flame,
   Target,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useGameData } from "@/hooks/useGameData";
 import { useUndeadProgram, usePDAs } from "@/hooks/useUndeadProgram";
 import { createWarrior, generateRandomDNA } from "@/hooks/useGameActions";
 import { PublicKey } from "@solana/web3.js";
 import { Warrior } from "@/types/undead";
 
-interface MyWarriorsProps {
-  onBattleSelect?: (warrior: any) => void;
-  onNavigate?: (section: string) => void;
-}
-
 interface NotificationState {
   message: string;
   status: "success" | "error";
   show: boolean;
 }
-const Warriors: React.FC<MyWarriorsProps> = ({ onNavigate }) => {
+const Warriors = () => {
   const {
     isConnected,
     publicKey,
@@ -49,6 +45,7 @@ const Warriors: React.FC<MyWarriorsProps> = ({ onNavigate }) => {
 
   const program = useUndeadProgram();
   const { configPda, profilePda, getWarriorPda } = usePDAs(publicKey);
+  const router = useRouter();
 
   // Modal states
   const [showCreateModal, setShowCreateModal] = useState<boolean>(false);
@@ -119,6 +116,10 @@ const Warriors: React.FC<MyWarriorsProps> = ({ onNavigate }) => {
     const randomImage =
       warriorImages[Math.floor(Math.random() * warriorImages.length)];
     setSelectedWarriorImage(randomImage);
+  };
+
+  const handleNavigate = (section: string) => {
+    router.push(`/headquaters/${section}`);
   };
 
   // Copy address to clipboard
@@ -356,9 +357,7 @@ const Warriors: React.FC<MyWarriorsProps> = ({ onNavigate }) => {
 
   // Navigate to battle arena
   const handleEnterArena = () => {
-    if (onNavigate) {
-      onNavigate("battle");
-    }
+    handleNavigate("battle");
   };
 
   // Show connection required message

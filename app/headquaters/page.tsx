@@ -76,16 +76,11 @@ const HeadQuarters: React.FC<DashboardProps> = ({
   const renderMainContent = () => {
     switch (activeSection) {
       case "dashboard":
-        return <DashboardPage onNavigate={handleNavigation} />;
+        return <DashboardPage />;
       case "warriors":
-        return (
-          <Warriors
-            onBattleSelect={handleBattleSelect}
-            onNavigate={handleNavigation}
-          />
-        );
+        return <Warriors />;
       case "achievements":
-        return <Achievements onNavigate={handleNavigation} />;
+        return <Achievements />;
       case "battle":
         return (
           <div className="p-4 sm:p-6 lg:p-8">
@@ -184,7 +179,7 @@ const HeadQuarters: React.FC<DashboardProps> = ({
           </div>
         );
       default:
-        return <DashboardPage onNavigate={handleNavigation} />;
+        return <DashboardPage />;
     }
   };
 

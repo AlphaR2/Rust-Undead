@@ -15,12 +15,7 @@ import {
 import { useGameData } from "@/hooks/useGameData";
 import { audioManager } from "@/utils/audioManager";
 import { PublicKey } from "@solana/web3.js";
-
-
-interface DashboardPageProps {
-  onNavigate: (section: string) => void;
-  selectedPath?: "apprentice" | "warrior" | "master";
-}
+import { useRouter } from "next/navigation";
 
 interface Activity {
   type: "warrior_created" | "battle_fought";
@@ -49,10 +44,8 @@ interface ProgressMetric {
   description?: string;
 }
 
-const DashboardPage: React.FC<DashboardPageProps> = ({
-  onNavigate,
-  selectedPath = "apprentice",
-}) => {
+const DashboardPage = () => {
+  const router = useRouter();
   const { gameConfig, userProfile, userWarriors, publicKey, networkInfo } =
     useGameData();
 
@@ -100,6 +93,9 @@ const DashboardPage: React.FC<DashboardPageProps> = ({
     return activities.sort((a, b) => b.timestamp - a.timestamp).slice(0, 5);
   };
 
+  const handleNavigate = (section: string) => {
+    router.push(`/headquaters/${section}`);
+  };
   // Helper function to format time ago
   const formatTimeAgo = (timestamp: number): string => {
     const now = Date.now();
@@ -152,7 +148,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({
       label: "Forge New Warrior",
       onClick: () => {
         audioManager.playSound("forge");
-        onNavigate("warriors");
+        handleNavigate("warriors");
       },
       icon: Plus,
       primary: true,
@@ -162,7 +158,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({
       label: "Enter Battle Arena",
       onClick: () => {
         audioManager.playSound("battle");
-        onNavigate("battle");
+        handleNavigate("battle");
       },
       icon: Shield,
     },
@@ -171,7 +167,7 @@ const DashboardPage: React.FC<DashboardPageProps> = ({
       label: "View Achievements",
       onClick: () => {
         audioManager.playSound("click");
-        onNavigate("achievements");
+        handleNavigate("achievements");
       },
       icon: Trophy,
     },
