@@ -9,19 +9,7 @@ import WelcomeModal from "../components/modal/WelcomeModal";
 import { useTour } from "../components/modal/WelcomeModal";
 import { Warrior } from "@/types/undead";
 
-interface DashboardProps {
-  newWarriorName?: string;
-  newWarriorDNA?: string;
-  showWelcome?: boolean;
-  onShowWelcome?: (show: boolean) => void;
-}
-
-const HeadQuarters: React.FC<DashboardProps> = ({
-  newWarriorName,
-  newWarriorDNA,
-  showWelcome: externalShowWelcome = false,
-  onShowWelcome,
-}) => {
+const HeadQuarters: React.FC = () => {
   const { isConnected, userWarriors } = useGameData();
 
   // Use the navigation context from layout
@@ -39,9 +27,7 @@ const HeadQuarters: React.FC<DashboardProps> = ({
 
   // Local state
   const [selectedWarrior, setSelectedWarrior] = useState<Warrior | null>(null);
-
-  // Determine which welcome state to use
-  const shouldShowWelcome = externalShowWelcome || internalShowWelcome;
+  const [showWelcome, setShowWelcome] = useState<boolean>(false);
 
   // Handle navigation between sections
   const handleNavigation = (sectionId: string) => {
@@ -58,19 +44,18 @@ const HeadQuarters: React.FC<DashboardProps> = ({
   // Handle welcome modal close
   const handleWelcomeClose = () => {
     handleCloseWelcome();
-    if (onShowWelcome) {
-      onShowWelcome(false);
-    }
+    setShowWelcome(false);
   };
 
   // Auto-show welcome for new users
   useEffect(() => {
-    if (isConnected && userWarriors.length === 0 && !shouldShowWelcome) {
-      if (onShowWelcome) {
-        onShowWelcome(true);
-      }
+    if (isConnected && userWarriors.length === 0 && !showWelcome) {
+      setShowWelcome(true);
     }
-  }, [isConnected, userWarriors.length, shouldShowWelcome, onShowWelcome]);
+  }, [isConnected, userWarriors.length, showWelcome]);
+
+  // Determine which welcome state to use
+  const shouldShowWelcome = showWelcome || internalShowWelcome;
 
   // Render main content based on active section
   const renderMainContent = () => {
@@ -237,8 +222,6 @@ const HeadQuarters: React.FC<DashboardProps> = ({
         <WelcomeModal
           isOpen={shouldShowWelcome}
           onClose={handleWelcomeClose}
-          newWarriorName={newWarriorName}
-          newWarriorDNA={newWarriorDNA}
           onStartTour={handleStartTour}
         />
       )}
