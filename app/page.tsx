@@ -20,11 +20,18 @@ import {
   Check,
   Copy,
   RefreshCw,
+  ChevronDown,
+  ExternalLink,
+  Shield,
+  ArrowLeft,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { usePrivy, useSolanaWallets } from "@privy-io/react-auth";
+import { usePrivy } from "@privy-io/react-auth";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { useGameData } from "../hooks/useGameData";
+import { useCurrentWallet } from "@/hooks/useUndeadProgram";
 import OnboardingModal from "./components/modal/Onboarding";
 import Notification from "./components/Notification";
 import { AnimatePresence } from "framer-motion";
@@ -37,6 +44,7 @@ interface Stat {
   icon: React.ReactNode;
   desc: string;
 }
+
 interface NotificationState {
   message: string;
   status: "success" | "error";
@@ -78,6 +86,9 @@ const Home: React.FC = () => {
   const [showOnboardingModal, setShowOnboardingModal] =
     useState<boolean>(false);
   const [copiedAddress, setCopiedAddress] = useState<boolean>(false);
+  const [showWalletSelector, setShowWalletSelector] = useState<boolean>(false);
+  const [showConnectionOptions, setShowConnectionOptions] =
+    useState<boolean>(false);
   const [notification, setNotification] = useState<NotificationState>({
     message: "",
     status: "error",
@@ -86,12 +97,22 @@ const Home: React.FC = () => {
 
   // Privy auth state
   const { authenticated, user, login, logout } = usePrivy();
-  const { wallets: solanaWallets } = useSolanaWallets();
+
+  // Standard Solana wallet adapter
+  const { connected, disconnect, wallet } = useWallet();
+
+  // Enhanced wallet hook
+  const {
+    address: userAddress,
+    type: walletType,
+    name: walletName,
+    isConnected: walletConnected,
+    availableWallets,
+    switchWallet,
+  } = useCurrentWallet();
 
   const {
     ready: gameReady,
-    authenticated: gameAuthenticated,
-    userAddress,
     networkInfo,
     balance,
     balanceError,
@@ -231,6 +252,13 @@ const Home: React.FC = () => {
     }
   }, [gameDataError]);
 
+  //connect state use effect
+  useEffect(() => {
+    if (connected) {
+      setShowConnectionOptions(false);
+    }
+  }, [connected]);
+
   // Auto-clear success message
   useEffect(() => {
     if (success) {
@@ -241,35 +269,52 @@ const Home: React.FC = () => {
     }
   }, [success]);
 
-  const handleLogin = async () => {
+  const handlePrivyLogin = async () => {
     try {
       setError(null);
       setSuccess(null);
       login();
+      setShowConnectionOptions(false);
     } catch (err) {
-      console.error("Login failed:", err);
+      console.error("Privy login failed:", err);
       setError({
-        message: "Failed to sign in. Please try again.",
+        message: "Failed to sign in with Privy. Please try again.",
         type: "login",
       });
     }
   };
 
-  const handleLogout = async () => {
+  const handleDisconnectAll = async () => {
     try {
       setError(null);
       setSuccess(null);
-      solanaWallets.map((wallet) => {
-        wallet.disconnect;
-      });
-      await logout();
+
+      // Disconnect Solana wallet if connected
+      if (connected) {
+        await disconnect();
+      }
+
+      // Logout from Privy if authenticated
+      if (authenticated) {
+        await logout();
+      }
+
+      setShowWalletSelector(false);
+      setShowConnectionOptions(false);
     } catch (err) {
-      console.error("Logout failed:", err);
+      console.error("Disconnect failed:", err);
       setError({
-        message: "Failed to sign out. Please try again.",
+        message: "Failed to disconnect. Please try again.",
         type: "general",
       });
     }
+  };
+
+  // Open connection options
+  const handleConnect = (): void => {
+    setShowConnectionOptions(true);
+    setError(null);
+    setSuccess(null);
   };
 
   // Open onboarding modal
@@ -282,7 +327,6 @@ const Home: React.FC = () => {
   // Navigate to dashboard
   const handleGoToDashboard = (): void => {
     router.push("/headquaters");
-    console.log("Navigate to dashboard");
   };
 
   const handleOnboardingComplete = async (data?: {
@@ -357,6 +401,181 @@ const Home: React.FC = () => {
       });
     }
   };
+
+  // Connection Options Modal Component
+  const ConnectionOptionsModal: React.FC = () => {
+    if (!showConnectionOptions) return null;
+
+    return (
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div className="bg-[#2a2a2a] border border-[#cd7f32]/30 rounded-xl shadow-2xl max-w-md w-full">
+          {/* Header */}
+          <div className="flex items-center justify-between p-6 border-b border-[#cd7f32]/20">
+            <div className="flex items-center gap-3">
+              <Wallet className="w-6 h-6 text-[#cd7f32]" />
+              <h3 className="text-xl font-bold text-gray-200">
+                Connect Wallet
+              </h3>
+            </div>
+            <button
+              onClick={() => setShowConnectionOptions(false)}
+              className="p-2 text-gray-400 hover:text-gray-200 hover:bg-gray-700/50 rounded-lg transition-colors"
+            >
+              ×
+            </button>
+          </div>
+
+          {/* Content */}
+          <div className="p-6 space-y-4">
+            <p className="text-gray-300 text-sm mb-6">
+              Choose your preferred connection method to start your Solana
+              learning journey:
+            </p>
+
+            {/* Privy Option */}
+            <button
+              onClick={handlePrivyLogin}
+              className="w-full p-4 bg-[#1a1a1a] hover:bg-[#cd7f32]/10 border border-[#cd7f32]/20 hover:border-[#cd7f32]/40 rounded-lg transition-all duration-200 text-left group"
+            >
+              <div className="flex items-center gap-4">
+                <div className="flex-shrink-0 w-12 h-12 bg-green-900/30 rounded-lg flex items-center justify-center group-hover:bg-green-900/50 transition-colors">
+                  <Shield className="w-6 h-6 text-green-400" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-semibold text-gray-200 group-hover:text-green-400 transition-colors">
+                    Continue with Privy
+                  </h4>
+
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className="text-xs px-2 py-1 bg-green-900/30 text-green-400 rounded border border-green-500/30">
+                      Recommended
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      • Easy setup • Built-in wallet
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </button>
+
+            {/* Wallet Adapter Option */}
+            <div className="w-full p-4 bg-[#1a1a1a] border border-[#cd7f32]/20 hover:border-[#cd7f32]/40 rounded-lg transition-all duration-200 group">
+              <div className="flex items-center gap-4 mb-3">
+                <div className="flex-shrink-0 w-12 h-12 bg-blue-900/30 rounded-lg flex items-center justify-center group-hover:bg-blue-900/50 transition-colors">
+                  <ExternalLink className="w-6 h-6 text-blue-400" />
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-semibold text-gray-200 group-hover:text-blue-400 transition-colors">
+                    Connect Wallet
+                  </h4>
+
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className="text-xs px-2 py-1 bg-blue-900/30 text-blue-400 rounded border border-blue-500/30">
+                      Normal
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      • Your existing wallet
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Wallet Adapter Button */}
+              <div className="ml-16">
+                <WalletMultiButton className="!bg-blue-600 hover:!bg-blue-700 !rounded-lg !text-sm !py-2 !px-4 !font-medium !w-full !h-auto" />
+              </div>
+            </div>
+
+            {/* Back Button */}
+            <button
+              onClick={() => setShowConnectionOptions(false)}
+              className="w-full mt-6 p-3 text-gray-400 hover:text-gray-200 hover:bg-gray-700/30 rounded-lg transition-colors flex items-center justify-center gap-2 text-sm"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Wallet Selector Component
+  const WalletSelector: React.FC = () => {
+    if (availableWallets.length <= 1) return null;
+
+    return (
+      <div className="relative">
+        <button
+          onClick={() => setShowWalletSelector(!showWalletSelector)}
+          className="flex items-center gap-2 p-2 rounded-lg hover:bg-[#cd7f32]/10 transition-all duration-200 text-sm"
+        >
+          <span className="text-gray-400">Switch:</span>
+          <span className="text-[#cd7f32]">{walletName}</span>
+          <ChevronDown
+            className={`w-4 h-4 text-gray-400 transition-transform ${
+              showWalletSelector ? "rotate-180" : ""
+            }`}
+          />
+        </button>
+
+        {showWalletSelector && (
+          <div className="absolute top-full left-0 right-0 mt-2 bg-[#2a2a2a] border border-[#cd7f32]/30 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
+            {availableWallets.map((wallet, index) => {
+              const isCurrentWallet =
+                wallet.publicKey.toString() === userAddress;
+              const externalIndex = availableWallets
+                .filter((w) => !w.isEmbedded)
+                .findIndex(
+                  (w) => w.publicKey.toString() === wallet.publicKey.toString()
+                );
+
+              return (
+                <button
+                  key={`${wallet.walletType}-${index}`}
+                  onClick={() => {
+                    switchWallet(wallet.walletType);
+                    setShowWalletSelector(false);
+                  }}
+                  disabled={isCurrentWallet}
+                  className={`w-full p-3 text-left transition-colors ${
+                    isCurrentWallet
+                      ? "bg-[#cd7f32]/20 cursor-not-allowed"
+                      : "hover:bg-[#cd7f32]/10"
+                  } first:rounded-t-lg last:rounded-b-lg`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium text-gray-200">{wallet.name}</p>
+                      <p className="text-xs text-gray-400 font-mono">
+                        {wallet.publicKey.toString().slice(0, 8)}...
+                        {wallet.publicKey.toString().slice(-8)}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`text-xs px-2 py-1 rounded ${
+                          wallet.isEmbedded
+                            ? "bg-green-900/30 text-green-400 border border-green-500/30"
+                            : "bg-blue-900/30 text-blue-400 border border-blue-500/30"
+                        }`}
+                      >
+                        {wallet.isEmbedded ? "Embedded" : "External"}
+                      </span>
+                      {isCurrentWallet && (
+                        <Check className="w-4 h-4 text-green-400" />
+                      )}
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   // Error display component
   const ErrorDisplay: React.FC<{ error: ErrorState }> = ({ error }) => (
     <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-4 mb-4">
@@ -389,12 +608,12 @@ const Home: React.FC = () => {
     </div>
   );
 
-  // Simple user info display component
+  // Enhanced user info display component
   const UserInfo: React.FC = () => {
-    if (!authenticated || !user) return null;
+    if (!authenticated && !connected) return null;
 
     return (
-      <div className="fixed top-4 right-4 z-40 bg-[#2a2a2a]/90 backdrop-blur-sm border border-[#cd7f32]/30 rounded-xl p-4 min-w-[280px] shadow-lg">
+      <div className="fixed top-4 right-4 z-40 bg-[#2a2a2a]/90 backdrop-blur-sm border border-[#cd7f32]/30 rounded-xl p-4 min-w-[320px] shadow-lg">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <User className="w-5 h-5 text-[#cd7f32]" />
@@ -403,7 +622,7 @@ const Home: React.FC = () => {
             </span>
           </div>
           <button
-            onClick={handleLogout}
+            onClick={handleDisconnectAll}
             className="p-2 text-gray-400 hover:text-red-400 hover:bg-red-900/20 rounded-lg transition-all duration-200"
             title="Sign out"
           >
@@ -411,40 +630,75 @@ const Home: React.FC = () => {
           </button>
         </div>
 
-        {/* User email/info */}
-        {user.google?.email && (
+        {/* User email/info - only show for Privy users */}
+        {authenticated && user?.google?.email && (
           <div className="text-xs text-gray-400 mb-2 truncate">
             {user.google.name}
           </div>
         )}
 
-        {userAddress && (
-          <div className="flex items-center justify-between mb-3">
-            <button
-              onClick={() => copyToClipboard(userAddress)}
-              className="flex items-center gap-2 p-1 rounded hover:bg-[#cd7f32]/10 transition-all duration-200 group"
-              title={copiedAddress ? "Copied!" : "Click to copy address"}
-            >
-              <Wallet className="w-4 h-4 text-[#cd7f32]" />
-              <span className="text-xs text-gray-300 font-mono group-hover:text-[#cd7f32] transition-colors">
-                {userAddress.slice(0, 6)}...{userAddress.slice(-4)}
-              </span>
-              {copiedAddress ? (
-                <Check className="w-3 h-3 text-green-400" />
-              ) : (
-                <Copy className="w-3 h-3 text-gray-400 group-hover:text-[#cd7f32] opacity-0 group-hover:opacity-100 transition-all" />
-              )}
-            </button>
+        {/* External wallet info - show for non-Privy connections */}
+        {connected && !authenticated && wallet && (
+          <div className="text-xs text-gray-400 mb-2 truncate">
+            Connected via {wallet.adapter.name}
+          </div>
+        )}
 
-            {/* Network badge */}
-            <div className="flex items-center gap-1">
-              <Globe className="w-3 h-3 text-gray-400" />
-              <span
-                className={`text-xs px-2 py-0.5 rounded-full ${networkInfo.bgColor} ${networkInfo.borderColor} border ${networkInfo.color} font-medium`}
+        {/* Current wallet info */}
+        {walletConnected && userAddress && (
+          <div className="space-y-3">
+            {/* Active wallet display */}
+            <div className="flex items-center justify-between">
+              <button
+                onClick={() => copyToClipboard(userAddress)}
+                className="flex items-center gap-2 p-1 rounded hover:bg-[#cd7f32]/10 transition-all duration-200 group"
+                title={copiedAddress ? "Copied!" : "Click to copy address"}
               >
-                {networkInfo.name}
-              </span>
+                <Wallet className="w-4 h-4 text-[#cd7f32]" />
+                <span className="text-xs text-gray-300 font-mono group-hover:text-[#cd7f32] transition-colors">
+                  {userAddress.slice(0, 6)}...{userAddress.slice(-4)}
+                </span>
+                {copiedAddress ? (
+                  <Check className="w-3 h-3 text-green-400" />
+                ) : (
+                  <Copy className="w-3 h-3 text-gray-400 group-hover:text-[#cd7f32] opacity-0 group-hover:opacity-100 transition-all" />
+                )}
+              </button>
+
+              {/* Network badge */}
+              <div className="flex items-center gap-1">
+                <Globe className="w-3 h-3 text-gray-400" />
+                <span
+                  className={`text-xs px-2 py-0.5 rounded-full ${networkInfo.bgColor} ${networkInfo.borderColor} border ${networkInfo.color} font-medium`}
+                >
+                  {networkInfo.name}
+                </span>
+              </div>
             </div>
+
+            {/* Wallet type indicator */}
+            <div className="flex items-center justify-between text-xs">
+              <div className="flex items-center gap-2">
+                <span className="text-gray-400">Active:</span>
+                <span
+                  className={`px-2 py-1 rounded ${
+                    walletType === "embedded"
+                      ? "bg-green-900/30 text-green-400 border border-green-500/30"
+                      : "bg-blue-900/30 text-blue-400 border border-blue-500/30"
+                  }`}
+                >
+                  {walletType === "embedded" ? "Embedded" : "External"}
+                </span>
+              </div>
+
+              {/* External wallet indicator */}
+              {walletType === "external" && (
+                <ExternalLink className="w-3 h-3 text-blue-400" />
+              )}
+            </div>
+
+            {/* Wallet selector */}
+            <WalletSelector />
           </div>
         )}
       </div>
@@ -467,7 +721,7 @@ const Home: React.FC = () => {
     }
 
     // User not authenticated
-    if (!gameAuthenticated) {
+    if (!authenticated && !connected) {
       return (
         <div className="bg-[#2a2a2a]/50 backdrop-blur-sm border border-[#cd7f32]/30 rounded-xl p-6 max-w-2xl mx-auto">
           {error && <ErrorDisplay error={error} />}
@@ -480,15 +734,17 @@ const Home: React.FC = () => {
             </h3>
           </div>
           <p className="text-gray-300 text-center mb-6">
-            Sign in with Google, connect your wallet, or create a new embedded
-            wallet to start forging undead warriors and mastering Solana.
+            Sign in with Google, connect your external wallet, or create a new
+            embedded wallet to start forging undead warriors and mastering
+            Solana.
           </p>
 
           <button
-            onClick={handleLogin}
+            onClick={handleConnect}
             disabled={!gameReady}
-            className="w-full bg-gradient-to-r from-[#cd7f32] to-[#ff8c42] hover:from-[#ff8c42] hover:to-[#cd7f32] text-black font-bold px-8 py-3 rounded-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 cursor-pointer"
+            className="w-full bg-gradient-to-r from-[#cd7f32] to-[#ff8c42] hover:from-[#ff8c42] hover:to-[#cd7f32] text-black font-bold px-8 py-3 rounded-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
           >
+            <Wallet className="w-5 h-5" />
             Sign In / Connect Wallet
           </button>
         </div>
@@ -568,14 +824,28 @@ const Home: React.FC = () => {
         <div className="text-center space-y-4">
           <p className="text-gray-300">
             Welcome to Rust Undead! Your{" "}
-            {userAddress ? "wallet is connected" : "account is ready"}.
+            {walletConnected
+              ? `${walletType} wallet is connected`
+              : "account is ready"}
+            .
           </p>
+
+          {/* Show available wallets info */}
+          {availableWallets.length > 1 && (
+            <p className="text-gray-400 text-sm">
+              You have {availableWallets.filter((w) => w.isEmbedded).length}{" "}
+              embedded and{" "}
+              {availableWallets.filter((w) => !w.isEmbedded).length} external
+              wallet(s) available.
+            </p>
+          )}
+
           <p className="text-gray-400 text-sm">
             Time to forge your first undead warrior and begin your learning
             journey.
           </p>
 
-          {/* SOL Balance - moved outside the button area */}
+          {/* SOL Balance */}
           {userAddress && (
             <div className="flex items-center justify-center gap-3 p-4 bg-[#1a1a1a]/50 rounded-lg border border-[#cd7f32]/20">
               <div className="w-4 h-4 flex items-center justify-center">
@@ -584,9 +854,7 @@ const Home: React.FC = () => {
                 ) : balance !== null && balance < 0.01 ? (
                   <AlertTriangle className="w-4 h-4 text-orange-400" />
                 ) : (
-                  <span className="text-[#cd7f32]  text-sm  font-bold">
-                    Bal
-                  </span>
+                  <span className="text-[#cd7f32] text-sm font-bold">Bal</span>
                 )}
               </div>
 
@@ -617,7 +885,7 @@ const Home: React.FC = () => {
                     {balance < 0.01 && networkInfo.name === "Devnet" && (
                       <div className="text-xs text-white font-black mt-1">
                         <Link href="https://faucet.solana.com/">
-                          Click to get Devnet SOl
+                          Click to get Devnet SOL
                         </Link>
                       </div>
                     )}
@@ -672,6 +940,9 @@ const Home: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#1a1a1a] text-gray-100">
       <UserInfo />
+
+      {/* Connection Options Modal */}
+      <ConnectionOptionsModal />
 
       {/* Onboarding Modal */}
       <OnboardingModal
@@ -888,28 +1159,29 @@ const Home: React.FC = () => {
             </div>
           </div>
 
-          {gameAuthenticated && !hasWarriors && !gameDataLoading && (
-            <div className="bg-gradient-to-r from-[#cd7f32]/20 to-[#ff8c42]/20 border border-[#cd7f32]/50 rounded-xl p-8 max-w-2xl mx-auto">
-              <h3 className="text-2xl font-bold text-[#cd7f32] mb-4">
-                Your Journey Awaits! 🚀
-              </h3>
-              <p className="text-gray-300 mb-6">
-                You're all set up! Click below to forge your first warrior and
-                begin mastering Solana.
-              </p>
-              <button
-                onClick={handleGetStarted}
-                disabled={showOnboardingModal}
-                className="bg-gradient-to-r from-[#cd7f32] to-[#ff8c42] hover:from-[#ff8c42] hover:to-[#cd7f32] text-black font-bold text-lg px-8 py-4 rounded-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50"
-              >
-                <span className="flex items-center gap-3">
-                  <Sword className="w-6 h-6" />
-                  Start Your Adventure Now!
-                  <ChevronRight className="w-5 h-5" />
-                </span>
-              </button>
-            </div>
-          )}
+          {authenticated ||
+            (connected && !hasWarriors && !gameDataLoading && (
+              <div className="bg-gradient-to-r from-[#cd7f32]/20 to-[#ff8c42]/20 border border-[#cd7f32]/50 rounded-xl p-8 max-w-2xl mx-auto">
+                <h3 className="text-2xl font-bold text-[#cd7f32] mb-4">
+                  Your Journey Awaits! 🚀
+                </h3>
+                <p className="text-gray-300 mb-6">
+                  You're all set up! Click below to forge your first warrior and
+                  begin mastering Solana.
+                </p>
+                <button
+                  onClick={handleGetStarted}
+                  disabled={showOnboardingModal}
+                  className="bg-gradient-to-r from-[#cd7f32] to-[#ff8c42] hover:from-[#ff8c42] hover:to-[#cd7f32] text-black font-bold text-lg px-8 py-4 rounded-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-50"
+                >
+                  <span className="flex items-center gap-3">
+                    <Sword className="w-6 h-6" />
+                    Start Your Adventure Now!
+                    <ChevronRight className="w-5 h-5" />
+                  </span>
+                </button>
+              </div>
+            ))}
         </div>
       </section>
 
@@ -954,6 +1226,15 @@ const Home: React.FC = () => {
           </div>
         </div>
       </footer>
+
+      {/* Click outside to close wallet selector */}
+      {showWalletSelector && (
+        <div
+          className="fixed inset-0 z-30"
+          onClick={() => setShowWalletSelector(false)}
+        />
+      )}
+
       <AnimatePresence>
         {notification.show && (
           <Notification

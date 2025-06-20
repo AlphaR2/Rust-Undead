@@ -23,9 +23,12 @@ import {
   Loader2,
   AlertTriangle,
   RefreshCw,
+  ExternalLink,
 } from "lucide-react";
 import { useGameData } from "@/hooks/useGameData";
 import { usePrivy } from "@privy-io/react-auth";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { useCurrentWallet } from "@/hooks/useUndeadProgram";
 
 interface NavigationItem {
   id: string;
@@ -66,20 +69,33 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const router = useRouter();
 
   // Privy hooks
-  const { ready, authenticated, user, logout } = usePrivy();
+  const { authenticated, user, logout } = usePrivy();
+
+  // Standard Solana wallet adapter
+  const { connected, disconnect, wallet } = useWallet();
+
+  // Enhanced wallet hook
+  const {
+    address: userAddress,
+    type: walletType,
+    name: walletName,
+    icon: walletIcon,
+    isConnected: walletConnected,
+    availableWallets,
+  } = useCurrentWallet();
 
   // Game data hook
   const {
     userProfile,
     userWarriors,
     refreshData,
-    isConnected,
-    userAddress,
     balance,
     balanceLoading,
     balanceError,
     fetchBalance,
     networkInfo,
+    ready: gameReady,
+    authenticated: gameAuthenticated,
   } = useGameData();
 
   // Navigation state
@@ -106,25 +122,17 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     { id: "forge", label: "Solana Forge", icon: Link, comingSoon: true },
   ];
 
-  // Authentication guard - redirect if not authenticated
+  // Check if user is authenticated via either method
+  const isUserAuthenticated = gameAuthenticated || connected;
+
+  // Authentication guard - redirect if not authenticated via either method
   useEffect(() => {
-    if (ready && !authenticated && !isRedirecting) {
+    if (gameReady && !isUserAuthenticated && !isRedirecting) {
       setIsRedirecting(true);
       console.log("User not authenticated, redirecting to home...");
       router.push("/");
     }
-  }, [ready, authenticated, router, isRedirecting]);
-
-  // Connection guard - redirect if authenticated but not connected
-  useEffect(() => {
-    if (ready && authenticated && !isConnected && !isRedirecting) {
-      setIsRedirecting(true);
-      console.log(
-        "User authenticated but not connected, redirecting to home..."
-      );
-      router.push("/");
-    }
-  }, [ready, authenticated, isConnected, router, isRedirecting]);
+  }, [gameReady, isUserAuthenticated, router, isRedirecting]);
 
   // Mobile detection
   useEffect(() => {
@@ -278,10 +286,20 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     }
   };
 
-  const handleDisconnect = async () => {
+  const handleDisconnectAll = async () => {
     try {
       setIsRedirecting(true);
-      await logout();
+
+      // Disconnect Solana wallet if connected
+      if (connected) {
+        await disconnect();
+      }
+
+      // Logout from Privy if authenticated
+      if (authenticated) {
+        await logout();
+      }
+
       setNotification({
         message: "Successfully disconnected. Redirecting...",
         status: "success",
@@ -327,7 +345,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   };
 
   // Show loading state while checking authentication or redirecting
-  if (!ready || isRedirecting) {
+  if (!gameReady || isRedirecting) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#0f0f0f] via-[#1a1a1a] to-[#2a2a2a] flex items-center justify-center">
         <div className="text-center space-y-4">
@@ -340,8 +358,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     );
   }
 
-  // Show unauthorized state if not authenticated or connected
-  if (!authenticated || !isConnected) {
+  // Show unauthorized state if not authenticated via either method
+  if (!isUserAuthenticated) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#0f0f0f] via-[#1a1a1a] to-[#2a2a2a] flex items-center justify-center p-4">
         <div className="text-center space-y-6 max-w-md">
@@ -361,27 +379,61 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     );
   }
 
-  // User info component with Privy integration
+  // Enhanced user info component with dual wallet support
   const UserInfoSection = () => {
-    if (!authenticated || !user) return null;
-
     return (
       <div className="space-y-3 mb-4">
-        {/* User Identity */}
-        {user.google?.name && (
-          <div className="flex items-center gap-2">
-            <User className="w-4 h-4 text-[#cd7f32]" />
-            <div className="flex-1 min-w-0">
+        {/* User Identity - Privy or External Wallet */}
+        <div className="flex items-center gap-2">
+          <User className="w-4 h-4 text-[#cd7f32]" />
+          <div className="flex-1 min-w-0">
+            {authenticated && user?.google?.name ? (
               <div className="text-xs text-gray-300 truncate">
                 {user.google.name}
               </div>
-            </div>
+            ) : connected && wallet ? (
+              <div className="text-xs text-gray-300 truncate">
+                Connected via {wallet.adapter.name}
+              </div>
+            ) : (
+              <div className="text-xs text-gray-300">Connected</div>
+            )}
           </div>
-        )}
+        </div>
 
-        {/* Wallet Address with Network */}
-        {userAddress && (
+        {/* Wallet Details */}
+        {walletConnected && userAddress && (
           <div className="space-y-2">
+            {/* Wallet Type and Name */}
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1">
+                {walletIcon ? (
+                  <img src={walletIcon} alt={walletName} className="w-4 h-4" />
+                ) : (
+                  <Wallet className="w-4 h-4 text-[#cd7f32]" />
+                )}
+                {walletType === "external" && (
+                  <ExternalLink className="w-3 h-3 text-blue-400" />
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-300 truncate">
+                    {walletName}
+                  </span>
+                  <span
+                    className={`text-xs px-1.5 py-0.5 rounded ${
+                      walletType === "embedded"
+                        ? "bg-green-900/30 text-green-400 border border-green-500/30"
+                        : "bg-blue-900/30 text-blue-400 border border-blue-500/30"
+                    }`}
+                  >
+                    {walletType === "embedded" ? "Embedded" : "External"}
+                  </span>
+                </div>
+              </div>
+            </div>
+
             {/* Address */}
             <div className="flex items-center gap-2">
               <Wallet className="w-4 h-4 text-[#cd7f32]" />
@@ -444,6 +496,13 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                 </button>
               )}
             </div>
+
+            {/* Available Wallets Info */}
+            {availableWallets.length > 1 && (
+              <div className="text-xs text-gray-500 pt-1 border-t border-gray-700">
+                {availableWallets.length} wallet(s) available
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -518,10 +577,10 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                     )}
                   </button>
                   <button
-                    onClick={handleDisconnect}
+                    onClick={handleDisconnectAll}
                     disabled={isRedirecting}
                     className="p-2 text-red-400 hover:text-red-300 transition-colors rounded-lg hover:bg-red-400/10 disabled:opacity-50 disabled:cursor-not-allowed"
-                    title="Disconnect Wallet"
+                    title="Disconnect All"
                   >
                     {isRedirecting ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
@@ -642,16 +701,23 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
               </div>
 
               <div className="flex items-center gap-4 sm:gap-6">
+                {/* Connection Status */}
                 <div className="hidden sm:flex items-center gap-2 text-sm">
                   <div
                     className={`w-2 h-2 rounded-full ${
-                      isConnected ? "bg-green-400" : "bg-red-400"
+                      isUserAuthenticated ? "bg-green-400" : "bg-red-400"
                     }`}
                   ></div>
                   <span className="text-gray-400">
-                    {isConnected ? "Connected" : "Disconnected"}
+                    {isUserAuthenticated ? "Connected" : "Disconnected"}
                   </span>
+                  {walletType && (
+                    <span className="text-xs text-gray-500">
+                      ({walletType})
+                    </span>
+                  )}
                 </div>
+
                 {/* Network */}
                 {networkInfo && (
                   <div className="flex items-center gap-2">
@@ -664,6 +730,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                     </span>
                   </div>
                 )}
+
                 <button
                   onClick={refreshData}
                   className="p-2 sm:p-3 text-gray-400 hover:text-[#cd7f32] transition-colors rounded-lg hover:bg-[#cd7f32]/10"

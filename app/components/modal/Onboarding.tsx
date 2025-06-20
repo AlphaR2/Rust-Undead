@@ -262,11 +262,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
     setCreationError("");
 
     try {
-      console.log(
-        `Creating warrior with ${walletType} wallet:`,
-        publicKey.toString()
-      );
-
+    
       const warriorPda = getWarriorPda(warriorName.trim());
 
       const result = await createWarrior({

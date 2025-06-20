@@ -1,114 +1,230 @@
-import { useMemo } from "react";
+import { useMemo, useState, useCallback } from "react";
 import { usePrivy } from "@privy-io/react-auth";
-import {
-  useSolanaWallets,
-  useSignTransaction,
-} from "@privy-io/react-auth/solana";
+import { useSignTransaction } from "@privy-io/react-auth/solana";
 import { Program, AnchorProvider } from "@coral-xyz/anchor";
-import {
-  PublicKey,
-  Connection,
-  Transaction,
-  VersionedTransaction,
-} from "@solana/web3.js";
+import { PublicKey, Transaction, VersionedTransaction } from "@solana/web3.js";
+import { useWallet, useConnection } from "@solana/wallet-adapter-react";
 import { PROGRAM_ID, PROGRAM_IDL } from "../config/program";
 import { UndeadTypes } from "@/types/idlTypes";
 
-const getRpcEndpoint = (): string => {
-  const envRpc = process.env.NEXT_PUBLIC_SOLANA_RPC_URL;
+// const getRpcEndpoint = (): string => {
+//   const envRpc = process.env.NEXT_PUBLIC_SOLANA_RPC_URL;
 
-  if (envRpc && envRpc.trim()) {
-    // Basic URL validation
-    try {
-      new URL(envRpc);
-      return envRpc;
-    } catch (error) {
-      console.warn(
-        "Invalid RPC URL in environment variable, falling back to default:",
-        error
-      );
-    }
-  }
+//   if (envRpc && envRpc.trim()) {
+//     try {
+//       new URL(envRpc);
+//       return envRpc;
+//     } catch (error) {
+//       console.warn(
+//         "Invalid RPC URL in environment variable, falling back to default:",
+//         error
+//       );
+//     }
+//   }
 
-  return "https://api.devnet.solana.com";
-};
+//   return "https://api.devnet.solana.com";
+// };
 
-const RPC_ENDPOINT = getRpcEndpoint();
-
-// Create properly typed program type
+// const RPC_ENDPOINT = getRpcEndpoint();
 type UndeadProgram = Program<UndeadTypes>;
 
-interface WalletInfo {
-  publicKey: PublicKey | null;
+interface WalletOption {
+  publicKey: PublicKey;
   isEmbedded: boolean;
+  walletType: "privy_embedded" | "solana_adapter";
+  name: string;
+  icon?: string;
+  walletClientType?: string;
+}
+
+interface WalletInfo extends WalletOption {
   isConnected: boolean;
-  walletType: "privy" | "external" | null;
+  availableWallets: WalletOption[];
+  switchWallet: (walletType: "privy_embedded" | "solana_adapter") => void;
+  hasPrivyWallet: boolean;
+  hasSolanaWallet: boolean;
 }
 
 export const useWalletInfo = (): WalletInfo => {
+  // Privy hooks for authentication and embedded wallets
   const { ready: privyReady, authenticated, user } = usePrivy();
-  const { wallets: solanaWallets, ready: walletsReady } = useSolanaWallets();
 
-  return useMemo(() => {
-    // Wait for both Privy and wallets to be ready
-    if (!privyReady || !walletsReady) {
-      return {
-        publicKey: null,
+  // Standard Solana wallet adapter hooks
+  const {
+    publicKey: adapterPublicKey,
+    connected: adapterConnected,
+    wallet: adapterWallet,
+  } = useWallet();
+
+  // State to track which wallet user wants to use
+  const [selectedWalletType, setSelectedWalletType] = useState<
+    "privy_embedded" | "solana_adapter" | null
+  >(null);
+
+  const availableWallets = useMemo(() => {
+    const wallets: WalletOption[] = [];
+
+    // Add Solana adapter wallet
+    if (adapterConnected && adapterPublicKey && adapterWallet) {
+      wallets.push({
+        publicKey: adapterPublicKey,
         isEmbedded: false,
-        isConnected: false,
-        walletType: null,
-      };
+        walletType: "solana_adapter",
+        name: adapterWallet.adapter.name || "External Wallet",
+        icon: adapterWallet.adapter.icon,
+        walletClientType: adapterWallet.adapter.name,
+      });
     }
-    if (authenticated && user?.wallet?.address) {
-      try {
-        return {
-          publicKey: new PublicKey(user.wallet.address),
-          isEmbedded: true,
-          isConnected: true,
-          walletType: "privy",
-        };
-      } catch (error) {
-        console.error("Error parsing Privy wallet address:", error);
+
+    //check for Solana embedded wallet
+    if (authenticated && user?.linkedAccounts) {
+      const embeddedSolanaWallet = user.linkedAccounts.find(
+        (account) =>
+          account.type === "wallet" &&
+          account.walletClientType === "privy" &&
+          account.chainType === "solana"
+      );
+
+      if (embeddedSolanaWallet && user?.wallet?.address) {
+        try {
+          wallets.push({
+            publicKey: new PublicKey(user?.wallet.address),
+            isEmbedded: true,
+            walletType: "privy_embedded",
+            name: "Privy Embedded Wallet",
+          });
+        } catch (error) {
+          console.error("Error parsing Privy Solana wallet address:", error);
+        }
+      } else if (user?.wallet?.address && !embeddedSolanaWallet) {
+        try {
+          const publicKey = new PublicKey(user.wallet.address);
+          wallets.push({
+            publicKey,
+            isEmbedded: true,
+            walletType: "privy_embedded",
+            name: "Privy Embedded Wallet",
+          });
+        } catch (error) {
+          console.log("User wallet is not a valid Solana address:", error);
+        }
       }
     }
 
-    if (solanaWallets && solanaWallets.length > 0) {
-      const primaryWallet = solanaWallets[0];
+    return wallets;
+  }, [
+    privyReady,
+    authenticated,
+    user?.linkedAccounts,
+    user?.wallet,
+    adapterConnected,
+    adapterPublicKey,
+    adapterWallet,
+  ]);
+
+  const switchWallet = useCallback(
+    (walletType: "privy_embedded" | "solana_adapter") => {
+      setSelectedWalletType(walletType);
+    },
+    []
+  );
+
+  // Helper booleans
+  const hasPrivyWallet = useMemo(() => {
+    return availableWallets.some((w) => w.walletType === "privy_embedded");
+  }, [availableWallets]);
+
+  const hasSolanaWallet = useMemo(() => {
+    return availableWallets.some((w) => w.walletType === "solana_adapter");
+  }, [availableWallets]);
+
+  return useMemo(() => {
+    // Wait for Privy to be ready
+    if (!privyReady) {
       return {
-        publicKey: new PublicKey(primaryWallet.address),
+        publicKey: null as any,
         isEmbedded: false,
-        isConnected: true,
-        walletType: "external",
+        isConnected: false,
+        walletType: null as any,
+        name: "",
+        availableWallets: [],
+        switchWallet,
+        hasPrivyWallet: false,
+        hasSolanaWallet: false,
       };
     }
 
-    // No wallet available
+    if (availableWallets.length === 0) {
+      return {
+        publicKey: null as any,
+        isEmbedded: false,
+        isConnected: false,
+        walletType: null as any,
+        name: "",
+        availableWallets: [],
+        switchWallet,
+        hasPrivyWallet,
+        hasSolanaWallet,
+      };
+    }
+
+    // Determine which wallet to use
+    let selectedWallet: WalletOption;
+
+    if (selectedWalletType === null) {
+      // Auto-select: prefer Solana adapter if available, otherwise Privy
+      const solanaWallet = availableWallets.find(
+        (w) => w.walletType === "solana_adapter"
+      );
+      selectedWallet = solanaWallet || availableWallets[0];
+    } else {
+      // Find the requested wallet type
+      const requestedWallet = availableWallets.find(
+        (w) => w.walletType === selectedWalletType
+      );
+      selectedWallet = requestedWallet || availableWallets[0];
+    }
+
     return {
-      publicKey: null,
-      isEmbedded: false,
-      isConnected: false,
-      walletType: null,
+      ...selectedWallet,
+      isConnected: true,
+      availableWallets,
+      switchWallet,
+      hasPrivyWallet,
+      hasSolanaWallet,
     };
-  }, [privyReady, walletsReady, authenticated, user?.wallet, solanaWallets]);
+  }, [
+    privyReady,
+    availableWallets,
+    selectedWalletType,
+    switchWallet,
+    hasPrivyWallet,
+    hasSolanaWallet,
+  ]);
 };
 
 export const useUndeadProgram = (): UndeadProgram | null => {
+  // Privy hooks
   const { ready: privyReady, authenticated, user } = usePrivy();
-  const { wallets: solanaWallets, ready: walletsReady } = useSolanaWallets();
-  const { signTransaction } = useSignTransaction();
-  const { publicKey, isConnected, walletType } = useWalletInfo();
+  const privySignTransaction = useSignTransaction();
 
-  // Memoize connection
-  const connection = useMemo(() => {
-    return new Connection(RPC_ENDPOINT, {
-      commitment: "confirmed",
-      confirmTransactionInitialTimeout: 60000,
-      disableRetryOnRateLimit: false,
-    });
-  }, []);
+  // Standard wallet adapter hooks
+  const {
+    publicKey: adapterPublicKey,
+    connected: adapterConnected,
+    signTransaction: adapterSignTransaction,
+    signAllTransactions: adapterSignAllTransactions,
+  } = useWallet();
+
+  // Use the wallet adapter connection instead of creating our own
+  const { connection } = useConnection();
+
+  // Our wallet info
+  const { publicKey, isConnected, walletType, availableWallets } =
+    useWalletInfo();
 
   const program = useMemo(() => {
-    if (!privyReady || !walletsReady || !isConnected || !publicKey) {
+    if (!privyReady || !isConnected || !publicKey) {
       return null;
     }
 
@@ -117,40 +233,43 @@ export const useUndeadProgram = (): UndeadProgram | null => {
       const walletAdapter = {
         publicKey,
         signTransaction: async (tx: Transaction | VersionedTransaction) => {
-          try {
-            console.log(
-              `Signing with ${walletType} wallet:`,
-              publicKey.toString()
-            );
+          if (walletType === "solana_adapter") {
+            // Use standard Solana wallet adapter
+            if (!adapterConnected || !adapterSignTransaction) {
+              throw new Error(
+                "Solana wallet not connected or doesn't support signing"
+              );
+            }
 
             if (
-              walletType === "external" &&
-              solanaWallets &&
-              solanaWallets.length > 0
+              !adapterPublicKey ||
+              adapterPublicKey.toString() !== publicKey.toString()
             ) {
-              // For external wallets, we need to request signature
-              console.log("Using external wallet direct interface");
-              const externalWallet = solanaWallets[0];
+              throw new Error("Solana wallet public key mismatch");
+            }
 
-              if (typeof externalWallet.signTransaction === "function") {
-                try {
-                  // Try this.
-                  const signedTx = await externalWallet.signTransaction(tx);
-                  return signedTx;
-                } catch (modernError) {
-                  console.warn("SignTransaction failed", modernError);
-                  throw modernError;
-                }
-              } else {
-                throw new Error(
-                  "External wallet does not support transaction signing"
-                );
-              }
-            } else if (walletType === "privy") {
-              // For Privy embedded wallets only
-              console.log("Using Privy embedded wallet");
+            const signedTx = await adapterSignTransaction(tx);
 
-              const signedTx = await signTransaction({
+            return signedTx;
+          } else if (walletType === "privy_embedded") {
+            // Use Privy embedded wallet
+            if (!authenticated || !user) {
+              throw new Error("User not authenticated with Privy");
+            }
+
+            // Verify this is actually a Privy embedded wallet
+            const isPrivyWallet = availableWallets.some(
+              (w) =>
+                w.walletType === "privy_embedded" &&
+                w.publicKey.toString() === publicKey.toString()
+            );
+
+            if (!isPrivyWallet) {
+              throw new Error("Current wallet is not a Privy embedded wallet");
+            }
+
+            try {
+              const signedTx = await privySignTransaction.signTransaction({
                 transaction: tx,
                 connection,
                 uiOptions: {
@@ -161,84 +280,62 @@ export const useUndeadProgram = (): UndeadProgram | null => {
                   preflightCommitment: "confirmed",
                 },
               });
+
               return signedTx;
-            } else {
-              throw new Error(`Unsupported wallet type: ${walletType}`);
+            } catch (privyError: any) {
+              console.error("❌ Privy signing error:", privyError);
+              throw new Error(`Privy signing failed: ${privyError.message}`);
             }
-          } catch (error) {
-            console.error(
-              `Error signing transaction with ${walletType} wallet:`,
-              error
-            );
-            throw error;
+          } else {
+            throw new Error(`❌ Unknown wallet type: ${walletType}`);
           }
         },
+
         signAllTransactions: async (
           txs: (Transaction | VersionedTransaction)[]
         ) => {
-          try {
-            console.log(
-              `Signing multiple transactions with ${walletType} wallet`
-            );
+          if (walletType === "solana_adapter") {
+            // Use standard wallet adapter batch signing
+            if (!adapterConnected) {
+              throw new Error("Solana wallet not connected");
+            }
 
-            if (
-              walletType === "external" &&
-              solanaWallets &&
-              solanaWallets.length > 0
-            ) {
-              // For external wallets, try batch signing first
-              const externalWallet = solanaWallets[0];
+            if (adapterSignAllTransactions) {
+              return await adapterSignAllTransactions(txs);
+            } else if (adapterSignTransaction) {
+              // Fallback to individual signing
 
-              if (typeof externalWallet.signAllTransactions === "function") {
-                try {
-                  return await externalWallet.signAllTransactions(txs);
-                } catch (batchError) {
-                  console.warn(
-                    "Batch signing failed, falling back to individual signing:",
-                    batchError
-                  );
-                }
-              }
-
-              // Fallback: sign one by one
               const signedTxs = [];
               for (const tx of txs) {
-                if (typeof externalWallet.signTransaction === "function") {
-                  const signedTx = await externalWallet.signTransaction(tx);
-                  signedTxs.push(signedTx);
-                } else {
-                  throw new Error(
-                    "External wallet does not support transaction signing"
-                  );
-                }
-              }
-              return signedTxs;
-            } else if (walletType === "privy") {
-              const signedTxs = [];
-              for (const tx of txs) {
-                const signedTx = await signTransaction({
-                  transaction: tx,
-                  connection,
-                  uiOptions: {
-                    showWalletUIs: true,
-                  },
-                  transactionOptions: {
-                    skipPreflight: false,
-                    preflightCommitment: "confirmed",
-                  },
-                });
+                const signedTx = await adapterSignTransaction(tx);
                 signedTxs.push(signedTx);
               }
               return signedTxs;
             } else {
-              throw new Error(`Unsupported wallet type: ${walletType}`);
+              throw new Error("Solana wallet doesn't support signing");
             }
-          } catch (error) {
-            console.error(
-              `Error signing multiple transactions with ${walletType} wallet:`,
-              error
+          } else if (walletType === "privy_embedded") {
+            // Privy doesn't support batch signing, so sign individually
+            const signedTxs = [];
+            for (const tx of txs) {
+              const signedTx = await privySignTransaction.signTransaction({
+                transaction: tx,
+                connection,
+                uiOptions: {
+                  showWalletUIs: true,
+                },
+                transactionOptions: {
+                  skipPreflight: false,
+                  preflightCommitment: "confirmed",
+                },
+              });
+              signedTxs.push(signedTx);
+            }
+            return signedTxs;
+          } else {
+            throw new Error(
+              `❌ Unknown wallet type for batch signing: ${walletType}`
             );
-            throw error;
           }
         },
       };
@@ -252,30 +349,31 @@ export const useUndeadProgram = (): UndeadProgram | null => {
       const idl = PROGRAM_IDL as UndeadTypes;
       const programInstance = new Program(idl, provider) as UndeadProgram;
 
-      console.log(
-        `Program initialized with ${walletType} wallet:`,
-        publicKey.toString()
-      );
       return programInstance;
     } catch (error) {
-      console.error("Error creating program instance:", error);
+      console.error("❌ Error creating program instance:", error);
       return null;
     }
   }, [
     privyReady,
-    walletsReady,
     authenticated,
+    user,
     publicKey,
     walletType,
     isConnected,
     connection,
-    signTransaction,
-    solanaWallets,
+    privySignTransaction,
+    adapterConnected,
+    adapterPublicKey,
+    adapterSignTransaction,
+    adapterSignAllTransactions,
+    availableWallets,
   ]);
 
   return program;
 };
 
+// Keep your existing PDAs hook unchanged
 export const usePDAs = (userPublicKey?: PublicKey | null) => {
   return useMemo(() => {
     if (!userPublicKey) {
@@ -337,95 +435,35 @@ export const usePDAs = (userPublicKey?: PublicKey | null) => {
   }, [userPublicKey]);
 };
 
-// //disconnect wallet
-// export const useWalletDisconnect = () => {
-//   const { wallets: solanaWallets } = useSolanaWallets();
-//   const { walletType } = useWalletInfo();
-
-//   const disconnectWallet = async () => {
-//     try {
-//       console.log(`Disconnecting ${walletType} wallet`);
-
-//       if (
-//         walletType === "external" &&
-//         solanaWallets &&
-//         solanaWallets.length > 0
-//       ) {
-//         // Disconnect external wallets
-//         const promises = solanaWallets.map(async (wallet) => {
-//           try {
-//             if (typeof wallet.disconnect === "function") {
-//               wallet.disconnect();
-//               console.log(`Disconnected ${wallet.walletClientType}`);
-//             }
-//           } catch (error) {
-//             console.warn(
-//               `Failed to disconnect ${wallet.walletClientType}:`,
-//               error
-//             );
-//           }
-//         });
-
-//         await Promise.allSettled(promises);
-//       }
-
-//       return { success: true };
-//     } catch (error) {
-//       console.error("Error during wallet disconnect:", error);
-//       return {
-//         success: false,
-//         error: error instanceof Error ? error.message : "Failed to disconnect",
-//       };
-//     }
-//   };
-
-//   return { disconnectWallet };
-// };
-
-// Helper hook to get current wallet information
+// Updated helper hook with connection status
 export const useCurrentWallet = () => {
-  const { publicKey, isConnected, walletType } = useWalletInfo();
-  const { wallets: solanaWallets } = useSolanaWallets();
-  const { user } = usePrivy();
+  const walletInfo = useWalletInfo();
 
   return useMemo(() => {
-    if (!isConnected || !publicKey) {
+    if (!walletInfo.isConnected || !walletInfo.publicKey) {
       return {
         address: null,
         type: null,
         name: null,
+        icon: null,
         isConnected: false,
-      };
-    }
-
-    if (
-      walletType === "external" &&
-      solanaWallets &&
-      solanaWallets.length > 0
-    ) {
-      const externalWallet = solanaWallets[0];
-      return {
-        address: publicKey.toString(),
-        type: "external",
-        name: externalWallet.walletClientType || "External Wallet",
-        isConnected: true,
-      };
-    }
-
-    if (walletType === "privy" && user?.wallet) {
-      return {
-        address: publicKey.toString(),
-        type: "embedded",
-        name: "Privy Wallet",
-        isConnected: true,
+        availableWallets: walletInfo.availableWallets,
+        switchWallet: walletInfo.switchWallet,
+        hasPrivyWallet: walletInfo.hasPrivyWallet,
+        hasSolanaWallet: walletInfo.hasSolanaWallet,
       };
     }
 
     return {
-      address: null,
-      type: null,
-      name: null,
-      isConnected: false,
+      address: walletInfo.publicKey.toString(),
+      type: walletInfo.isEmbedded ? "embedded" : "external",
+      name: walletInfo.name,
+      icon: walletInfo.icon,
+      isConnected: true,
+      availableWallets: walletInfo.availableWallets,
+      switchWallet: walletInfo.switchWallet,
+      hasPrivyWallet: walletInfo.hasPrivyWallet,
+      hasSolanaWallet: walletInfo.hasSolanaWallet,
     };
-  }, [publicKey, isConnected, walletType, solanaWallets, user?.wallet]);
+  }, [walletInfo]);
 };
