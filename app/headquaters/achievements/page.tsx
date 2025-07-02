@@ -557,13 +557,13 @@ const Achievements = () => {
               <button
                 key={category.id}
                 onClick={() => setSelectedCategory(category.id as any)}
-                className={`flex items-center justify-center gap-3 px-4 py-4 md:py-5 rounded-xl text-sm md:text-base font-semibold transition-all duration-300 ${
+                className={`flex items-center justify-center gap-2 px-3 py-3 md:py-4 rounded-lg text-sm font-semibold transition-all duration-300 cursor-pointer ${
                   selectedCategory === category.id
                     ? "bg-[#cd7f32]/20 text-[#cd7f32] border-2 border-[#cd7f32]/50 shadow-lg shadow-[#cd7f32]/20"
                     : "bg-[#1a1a1a] text-gray-400 border-2 border-gray-600 hover:text-[#cd7f32] hover:border-[#cd7f32]/30 hover:bg-[#cd7f32]/10"
                 }`}
               >
-                <category.icon className="w-5 h-5 md:w-6 md:h-6" />
+                <category.icon className="w-4 h-4 md:w-5 md:h-5" />
                 <span className="hidden sm:inline">{category.label}</span>
               </button>
             ))}
@@ -577,7 +577,7 @@ const Achievements = () => {
           <select
             value={selectedTier}
             onChange={(e) => setSelectedTier(e.target.value as any)}
-            className="px-6 py-4 md:py-5 bg-[#1a1a1a] border-2 border-gray-600 rounded-xl text-gray-100 focus:border-[#cd7f32] focus:outline-none focus:ring-2 focus:ring-[#cd7f32]/20 transition-all text-base md:text-lg font-medium"
+            className="px-3 py-3 md:py-4 bg-[#1a1a1a] border-2 border-gray-600 rounded-lg text-gray-100 focus:border-[#cd7f32] focus:outline-none focus:ring-2 focus:ring-[#cd7f32]/20 transition-all text-sm font-medium"
           >
             {tiers.map((tier) => (
               <option key={tier.id} value={tier.id}>

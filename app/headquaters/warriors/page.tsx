@@ -171,7 +171,7 @@ const Warriors = () => {
 
     return (
       <div className="relative group">
-        <div className="relative overflow-hidden rounded-2xl border-2 border-[#cd7f32]/30 group-hover:border-[#cd7f32]/60 transition-all duration-500 shadow-lg">
+        <div className="relative overflow-hidden rounded-t-lg  group-hover:border-[#cd7f32]/60 transition-all duration-500 shadow-lg">
           <img
             src={imageUrl}
             alt={`${warrior.name || "Warrior"} Avatar`}
@@ -378,7 +378,7 @@ const Warriors = () => {
   }
 
   return (
-    <div className="space-y-8 lg:space-y-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
+    <div className="space-y-8 lg:space-y-12 w-full mx-auto px-4 sm:px-6 lg:px-10 py-6 lg:py-8">
       {/* Notification Toast */}
       {notification.show && (
         <div className="fixed top-6 right-6 z-50 max-w-sm">
@@ -414,7 +414,7 @@ const Warriors = () => {
       {/* Header Section */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
         <div className="space-y-4">
-          <p className="text-gray-400 text-lg md:text-xl">
+          <p className="text-gray-400 text-lg">
             Your Immortal Legion •{" "}
             <span className="text-[#cd7f32] font-semibold">
               {userWarriors.length}
@@ -427,11 +427,11 @@ const Warriors = () => {
           <button
             onClick={refreshData}
             disabled={loading}
-            className="p-4 text-gray-400 hover:text-[#cd7f32] transition-all duration-300 hover:bg-[#cd7f32]/10 rounded-xl border border-gray-600 hover:border-[#cd7f32]/50"
+            className="p-4 text-gray-400 hover:text-[#cd7f32] transition-all duration-300 hover:bg-[#cd7f32]/10 rounded-lg border border-gray-600 hover:border-[#cd7f32]/50"
             title="Refresh from blockchain"
           >
             <RefreshCw
-              className={`w-6 h-6 md:w-7 md:h-7 ${
+              className={`w-5 h-5 md:w-6 md:h-6 ${
                 loading ? "animate-spin" : ""
               }`}
             />
@@ -439,7 +439,7 @@ const Warriors = () => {
 
           <button
             onClick={() => setShowCreateModal(true)}
-            className="bg-gradient-to-r from-[#cd7f32] to-[#ff8c42] hover:from-[#ff8c42] hover:to-[#cd7f32] text-black font-bold px-8 md:px-10 py-4 md:py-5 rounded-xl transition-all duration-300 transform hover:scale-105 flex items-center gap-4 shadow-2xl shadow-[#cd7f32]/30 text-base md:text-lg cursor-pointer"
+            className="bg-gradient-to-r from-[#cd7f32] to-[#ff8c42] hover:from-[#ff8c42] hover:to-[#cd7f32] text-black font-bold px-4 md:px-4 py-4 md:py-4 rounded-lg transition-all duration-300 transform hover:scale-105 flex items-center gap-4 shadow-2xl shadow-[#cd7f32]/30 text-base cursor-pointer"
           >
             <Plus className="w-6 h-6 md:w-7 md:h-7" />
             Forge New Warrior
@@ -512,18 +512,18 @@ const Warriors = () => {
 
       {/* Search and Filters */}
       <div className="flex flex-col lg:flex-row gap-6">
-        <div className="flex-1 relative">
+        <div className="w-[300px] flex-1 relative">
           <Search className="w-6 h-6 text-gray-400 absolute left-5 top-1/2 transform -translate-y-1/2" />
           <input
             type="text"
             placeholder="Search warriors by name..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-14 pr-6 py-4 md:py-5 bg-[#1a1a1a] border border-[#cd7f32]/30 rounded-xl text-gray-100 placeholder-gray-500 focus:border-[#cd7f32] focus:outline-none focus:ring-2 focus:ring-[#cd7f32]/20 transition-all text-base md:text-lg"
+            className="w-full pl-14 pr-6 py-4 md:py-4 bg-[#1a1a1a] border border-[#cd7f32]/30 rounded-xl text-gray-100 placeholder-gray-500 focus:border-[#cd7f32] focus:outline-none focus:ring-2 focus:ring-[#cd7f32]/20 transition-all text-base"
           />
         </div>
 
-        <div className="flex gap-4">
+        {/* <div className="flex gap-4">
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
@@ -543,7 +543,7 @@ const Warriors = () => {
             <option value="strong">Strong (Power 5+)</option>
             <option value="veteran">Veterans (5+ Battles)</option>
           </select>
-        </div>
+        </div> */}
       </div>
 
       {/* Warriors Grid */}
@@ -579,20 +579,20 @@ const Warriors = () => {
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3  xl:grid-cols-4 gap-42">
+        <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {filteredAndSortedWarriors().map((warrior, index) => {
             // const rank = getWarriorRank(warrior);
 
             return (
               <div
                 key={index}
-                className="bg-gradient-to-br w-64 from-[#1a1a1a] via-[#1a1a1a] to-[#0f0f0f] border-2 border-[#cd7f32]/30 rounded-2xl overflow-hidden hover:border-[#cd7f32]/70 transition-all duration-500 hover:transform hover:scale-105 group shadow-xl hover:shadow-2xl hover:shadow-[#cd7f32]/25"
+                className="bg-gradient-to-br w-[100%] from-[#1a1a1a] via-[#1a1a1a] to-[#0f0f0f] border-1 border-[#cd7f32]/30 rounded-lg overflow-hidden hover:border-[#cd7f32]/70 transition-all duration-500 hover:transform hover:scale-101 group shadow-xl hover:shadow-2xl hover:shadow-[#cd7f32]/25"
               >
                 {/* Warrior Image */}
                 <div className="relative">{renderWarriorImage(warrior)}</div>
 
                 {/* Warrior Info */}
-                <div className="p-6 md:p-7 space-y-5">
+                <div className="p-5 md:p-6 space-y-5">
                   <div className="text-center">
                     <h3 className="text-xl md:text-2xl font-bold text-[#cd7f32] mb-2 truncate">
                       {warrior.name}
@@ -604,34 +604,37 @@ const Warriors = () => {
 
                   {/* Stats Grid */}
                   <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div className="bg-[#0f0f0f] rounded-xl p-4 border border-[#cd7f32]/20">
+                    <div className="bg-[#0f0f0f] rounded-lg p-4 border border-[#cd7f32]/20">
                       <span className="text-gray-400 block mb-1">
                         Power Level
                       </span>
-                      <span className="text-white font-bold text-xl">
+                      <span className="text-white font-bold text-lg">
                         {warrior.powerLevel}
                       </span>
                     </div>
-                    <div className="bg-[#0f0f0f] rounded-xl p-4 border border-[#cd7f32]/20">
+                    <div className="bg-[#0f0f0f] rounded-lg p-4 border border-[#cd7f32]/20">
                       <span className="text-gray-400 block mb-1">
                         Experience
                       </span>
-                      <span className="text-white font-bold text-xl">
+                      <span className="text-white font-bold text-lg">
                         {warrior.experiencePoints}
                       </span>
                     </div>
-                    <div className="bg-[#0f0f0f] rounded-xl p-4 border border-[#cd7f32]/20">
+                    <div className="bg-[#0f0f0f] rounded-lg p-4 border border-[#cd7f32]/20">
                       <span className="text-gray-400 block mb-1">Battles</span>
                       <span className="text-white font-bold text-lg">
                         {warrior.battleWins}/{warrior.battlesFought}
                       </span>
                     </div>
-                    <div className="bg-[#0f0f0f] rounded-xl p-4 border border-[#cd7f32]/20">
+                    <div className="bg-[#0f0f0f] rounded-lg p-4 border border-[#cd7f32]/20">
                       <span className="text-gray-400 block mb-1">Created</span>
                       <span className="text-white font-bold text-lg">
                         {new Date(warrior.createdAt * 1000).toLocaleDateString(
                           "en-US",
-                          { month: "short", day: "numeric" }
+                          {
+                            month: "short",
+                            day: "numeric",
+                          }
                         )}
                       </span>
                     </div>
@@ -669,7 +672,7 @@ const Warriors = () => {
                   <div className="flex gap-3 pt-3">
                     <button
                       onClick={() => setSelectedWarrior(warrior)}
-                      className="flex-1 bg-[#cd7f32]/20 border border-[#cd7f32]/50 text-[#cd7f32] font-semibold py-3.5 px-4 rounded-xl hover:bg-[#cd7f32]/30 hover:border-[#cd7f32]/70 transition-all duration-300 flex items-center justify-center gap-2 text-sm cursor-pointer"
+                      className="flex-1 bg-[#cd7f32]/20 border border-[#cd7f32]/50 text-[#cd7f32] font-semibold py-3 px-3 rounded-lg hover:bg-[#cd7f32]/30 hover:border-[#cd7f32]/70 transition-all duration-300 flex items-center justify-center gap-2 text-sm cursor-pointer"
                     >
                       <Eye className="w-4 h-4" />
                       Details
@@ -677,7 +680,7 @@ const Warriors = () => {
 
                     <button
                       onClick={handleEnterArena}
-                      className="flex-1 bg-gradient-to-r from-[#cd7f32] to-[#ff8c42] text-black font-semibold py-3.5 px-4 rounded-xl hover:scale-105 transition-transform flex items-center justify-center gap-2 text-sm shadow-lg cursor-pointer"
+                      className="flex-1 bg-gradient-to-r from-[#cd7f32] to-[#ff8c42] text-black font-semibold py-3 px-3 rounded-lg hover:scale-105 transition-transform flex items-center justify-center gap-2 text-sm shadow-lg cursor-pointer"
                     >
                       <Shield className="w-4 h-4" />
                       Arena
@@ -685,7 +688,7 @@ const Warriors = () => {
 
                     <button
                       onClick={() => openSolanaExplorer(warrior.address)}
-                      className="bg-[#2a2a2a] border border-gray-600 text-gray-400 font-semibold py-3.5 px-4 rounded-xl hover:text-[#cd7f32] hover:border-[#cd7f32]/50 transition-colors cursor-pointer"
+                      className="bg-[#2a2a2a] border border-gray-600 text-gray-400 font-semibold py-3 px-3 rounded-lg hover:text-[#cd7f32] hover:border-[#cd7f32]/50 transition-colors cursor-pointer"
                       title="View on Explorer"
                     >
                       <ExternalLink className="w-4 h-4" />
@@ -1068,11 +1071,11 @@ const Warriors = () => {
         <div className="bg-gradient-to-r from-[#cd7f32]/15 via-[#ff8c42]/15 to-[#cd7f32]/15 border-2 border-[#cd7f32]/40 rounded-3xl p-8 md:p-10 shadow-2xl">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
             <div className="space-y-4">
-              <h3 className="text-3xl md:text-4xl font-bold text-[#cd7f32] flex items-center gap-3">
+              <h3 className="text-lg md:text-xl font-bold text-[#cd7f32] flex items-center gap-3">
                 <Shield className="w-8 h-8" />
                 Ready for Battle?
               </h3>
-              <p className="text-gray-300 text-lg md:text-xl leading-relaxed">
+              <p className="text-gray-300 text-base md:text-lg leading-relaxed">
                 Your warriors are waiting in the arena. Choose your champion and
                 fight for glory!
               </p>
@@ -1094,7 +1097,7 @@ const Warriors = () => {
             </div>
             <button
               onClick={handleEnterArena}
-              className="bg-gradient-to-r from-[#cd7f32] to-[#ff8c42] text-black font-bold px-10 md:px-12 py-5 md:py-6 rounded-xl hover:scale-105 transition-transform flex items-center gap-4 shadow-2xl shadow-[#cd7f32]/30 text-lg md:text-xl"
+              className="bg-gradient-to-r from-[#cd7f32] to-[#ff8c42] text-black font-bold px-8 md:px-10 py-4 md:py-5 rounded-lg hover:scale-101 transition-transform flex items-center gap-4 shadow-2xl shadow-[#cd7f32]/30 text-base md:text-lg cursor-pointer"
             >
               <Shield className="w-7 h-7 md:w-8 md:h-8" />
               <span>Enter Battle Arena</span>

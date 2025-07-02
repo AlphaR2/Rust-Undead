@@ -511,7 +511,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
   return (
     <NavigationContext.Provider value={{ activeSection, setActiveSection }}>
-      <div className="min-h-screen bg-gradient-to-br from-[#0f0f0f] via-[#1a1a1a] to-[#2a2a2a] flex">
+      <div className="h-screen bg-gradient-to-br from-[#0f0f0f] via-[#1a1a1a] to-[#2a2a2a] flex">
         {/* Notification Toast */}
         {notification.show && (
           <div className="fixed top-4 right-4 z-50 max-w-sm">
@@ -553,14 +553,14 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           className={`
             ${isMobile ? "fixed" : "relative"} 
             ${isMobile && !sidebarOpen ? "-translate-x-full" : "translate-x-0"}
-            w-72 bg-[#1a1a1a] border-r border-[#cd7f32]/30 flex flex-col z-40 transition-transform duration-300 ease-in-out
+            w-72 h-[100%] bg-[#1a1a1a] border-r border-[#cd7f32]/30 flex flex-col z-40 transition-transform duration-300 ease-in-out
           `}
         >
           {/* Sidebar Header */}
           <div className="p-4 sm:p-6 border-b border-[#cd7f32]/30">
             <div className="flex items-center justify-between mb-4 sm:mb-6">
               <div className="flex items-center gap-3">
-                <h1 className="text-lg sm:text-xl font-bold text-[#cd7f32]">
+                <h1 className="text-[16px] font-bold text-[#cd7f32]">
                   Command Center
                 </h1>
                 {/* Control Buttons */}
@@ -691,7 +691,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                 )}
 
                 <div>
-                  <h2 className="text-2xl sm:text-3xl font-bold text-[#cd7f32] mb-1 sm:mb-2">
+                  <h2 className="text-lg md:text-xl font-bold text-[#cd7f32] mb-1 sm:mb-2">
                     {getSectionTitle()}
                   </h2>
                   <p className="text-gray-400 text-sm sm:text-base lg:text-lg">
