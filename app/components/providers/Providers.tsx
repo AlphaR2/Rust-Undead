@@ -24,14 +24,9 @@ export default function Providers({ children }: ProvidersProps) {
           ],
           embeddedWallets: {
             solana: {
-              createOnLogin: "users-without-wallets",
+              createOnLogin: "all-users",
             },
           },
-          appearance: {
-            theme: "dark",
-            accentColor: "#cd7f32",
-          },
-          loginMethods: ["google", "email"],
         }}
       >
         {children}

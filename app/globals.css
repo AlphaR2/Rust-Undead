@@ -3,6 +3,11 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --primary-bronze: #cd7f32;
+  --primary-orange: #ff8c42;
+  --dark-bg: #0a0a0a;
+  --darker-bg: #0f0f0f;
+  --card-bg: #1a1a1a;
 }
 
 @theme inline {
@@ -23,4 +28,145 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* Hide main html scrollbar */
+html::-webkit-scrollbar {
+  display: none;
+}
+
+/* Utility class to hide scrollbars */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Default scrollbar styles for light theme */
+.overflow-y-auto {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
+.overflow-y-auto::-webkit-scrollbar {
+  width: 6px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+/* Dark theme scrollbar styles */
+@media (prefers-color-scheme: dark) {
+  .overflow-y-auto {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(205, 127, 50, 0.6) rgba(15, 15, 15, 0.3);
+  }
+
+  .overflow-y-auto::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .overflow-y-auto::-webkit-scrollbar-track {
+    background: rgba(15, 15, 15, 0.3);
+    border-radius: 10px;
+  }
+
+  .overflow-y-auto::-webkit-scrollbar-thumb {
+    background: linear-gradient(
+      135deg,
+      var(--primary-bronze),
+      var(--primary-orange)
+    );
+    border-radius: 10px;
+    border: 1px solid rgba(15, 15, 15, 0.5);
+  }
+
+  .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(
+      135deg,
+      var(--primary-orange),
+      var(--primary-bronze)
+    );
+  }
+}
+
+/* Custom scrollbar for Warriors theme specifically */
+.scrollbar-warriors {
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary-bronze) var(--darker-bg);
+}
+
+.scrollbar-warriors::-webkit-scrollbar {
+  width: 10px;
+}
+
+.scrollbar-warriors::-webkit-scrollbar-track {
+  background: var(--darker-bg);
+  border-radius: 12px;
+  border: 1px solid rgba(205, 127, 50, 0.1);
+}
+
+.scrollbar-warriors::-webkit-scrollbar-thumb {
+  background: linear-gradient(
+    45deg,
+    var(--primary-bronze),
+    var(--primary-orange)
+  );
+  border-radius: 12px;
+  border: 2px solid var(--darker-bg);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.scrollbar-warriors::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(
+    45deg,
+    var(--primary-orange),
+    var(--primary-bronze)
+  );
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.scrollbar-warriors::-webkit-scrollbar-corner {
+  background: var(--darker-bg);
+}
+
+/* Thin scrollbar variant */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(205, 127, 50, 0.4) transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  width: 4px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgba(205, 127, 50, 0.4);
+  border-radius: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: rgba(205, 127, 50, 0.6);
+}
+
+/* Invisible scrollbar but keep functionality */
+.scrollbar-invisible {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scrollbar-invisible::-webkit-scrollbar {
+  display: none;
 }

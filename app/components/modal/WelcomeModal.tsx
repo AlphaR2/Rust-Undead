@@ -25,7 +25,6 @@ import {
 } from "lucide-react";
 import { useGameData } from "@/hooks/useGameData";
 
-
 interface WelcomeModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -60,8 +59,7 @@ interface QuickTourProps {
   }>;
 }
 
-
- const WelcomeModal: React.FC<WelcomeModalProps> = ({
+const WelcomeModal: React.FC<WelcomeModalProps> = ({
   isOpen,
   onClose,
   newWarriorName,
@@ -79,7 +77,6 @@ interface QuickTourProps {
       title: "Welcome to Rust Undead Academy!",
       content: (
         <div className="text-center space-y-6">
-          <div className="text-8xl mb-6">🦀💀</div>
           <h2 className="text-3xl font-bold text-[#cd7f32] mb-4">
             Command Center Initialized
           </h2>
@@ -124,7 +121,6 @@ interface QuickTourProps {
       content: (
         <div className="space-y-6">
           <div className="text-center">
-            <div className="text-6xl mb-4">🧠⚔️</div>
             <h3 className="text-2xl font-bold text-[#cd7f32] mb-4">
               Educational Combat System
             </h3>
@@ -276,17 +272,9 @@ interface QuickTourProps {
                 <div className="bg-[#0f0f0f] border border-green-500/30 rounded-lg p-4 text-center">
                   <Trophy className="w-8 h-8 text-green-400 mx-auto mb-2" />
                   <div className="text-2xl font-bold text-white">
-                    {userWarriors.reduce((sum, w) => sum + w.battleWins, 0)}
+                    {userWarriors.reduce((sum, w) => sum + w.battlesWon, 0)}
                   </div>
                   <div className="text-sm text-gray-400">Victories</div>
-                </div>
-
-                <div className="bg-[#0f0f0f] border border-purple-500/30 rounded-lg p-4 text-center">
-                  <Star className="w-8 h-8 text-purple-400 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-white">
-                    {Math.max(...userWarriors.map((w) => w.powerLevel), 0)}
-                  </div>
-                  <div className="text-sm text-gray-400">Max Power</div>
                 </div>
               </div>
             </div>

@@ -3,7 +3,6 @@ import React, { useState } from "react";
 import {
   Sword,
   Trophy,
-  Crown,
   TrendingUp,
   Plus,
   Shield,
@@ -11,6 +10,8 @@ import {
   Clock,
   Target,
   ChevronRight,
+  ChartAreaIcon,
+  ChartBar,
 } from "lucide-react";
 import { useGameData } from "@/hooks/useGameData";
 import { audioManager } from "@/utils/audioManager";
@@ -22,7 +23,7 @@ interface Activity {
   timestamp: number;
   data: {
     name?: string;
-    dna?: string;
+    dna?: number[];
     result?: "victory" | "defeat";
     opponent?: string;
   };
@@ -51,14 +52,6 @@ const DashboardPage = () => {
 
   const [showActivityDetails, setShowActivityDetails] =
     useState<boolean>(false);
-
-  // Helper function to get the strongest warrior
-  const getStrongestWarrior = () => {
-    if (!userWarriors.length) return null;
-    return userWarriors.reduce((strongest, warrior) =>
-      warrior.powerLevel > strongest.powerLevel ? warrior : strongest
-    );
-  };
 
   // Helper function to get recent activities
   const getRecentActivity = (): Activity[] => {
@@ -141,6 +134,8 @@ const DashboardPage = () => {
     }
   };
 
+  console.log("num of warriors", gameConfig?.totalWarriors.toString());
+
   // Quick actions configuration
   const quickActions: QuickAction[] = [
     {
@@ -158,7 +153,7 @@ const DashboardPage = () => {
       label: "Enter Battle Arena",
       onClick: () => {
         audioManager.playSound("battle");
-        handleNavigate("battle");
+        // handleNavigate("battle");
       },
       icon: Shield,
     },
@@ -183,20 +178,20 @@ const DashboardPage = () => {
   const progressMetrics: ProgressMetric[] = [
     {
       label: "Rust Concepts",
-      current: Math.min(20, userWarriors.length * 4),
-      max: 20,
+      current: Math.min(100, 0),
+      max: 100,
       description: "Programming concepts learned",
     },
     {
       label: "Blockchain Transactions",
       current: userWarriors.length + (userProfile?.totalBattlesFought || 0),
-      max: 10,
+      max: 100,
       description: "On-chain interactions",
     },
     {
       label: "Smart Contract Interactions",
       current: userWarriors.length,
-      max: 5,
+      max: 100,
       description: "Program calls made",
     },
   ];
@@ -234,7 +229,7 @@ const DashboardPage = () => {
       {/* Overview Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
         {/* Warriors Stat */}
-        <div className="bg-[#1a1a1a] border border-[#cd7f32]/30 rounded-lg sm:rounded-xl p-3 sm:p-4 lg:p-6 hover:border-[#cd7f32]/50 transition-all duration-300">
+        <div className="bg-[#1a1a1a] border flex flex-col border-[#cd7f32]/30 rounded-lg sm:rounded-xl p-3 gap-2  sm:p-4 lg:p-6 hover:border-[#cd7f32]/50 transition-all duration-300">
           <div className="flex items-center gap-2 lg:gap-3 mb-2 lg:mb-3">
             <div className="p-1.5 sm:p-2 bg-[#cd7f32]/10 rounded-lg">
               <Sword className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-[#cd7f32]" />
@@ -250,7 +245,7 @@ const DashboardPage = () => {
         </div>
 
         {/* Victories Stat */}
-        <div className="bg-[#1a1a1a] border border-[#cd7f32]/30 rounded-lg sm:rounded-xl p-3 sm:p-4 lg:p-6 hover:border-[#cd7f32]/50 transition-all duration-300">
+        <div className="bg-[#1a1a1a] border flex flex-col border-[#cd7f32]/30 rounded-lg sm:rounded-xl p-3 gap-2  sm:p-4 lg:p-6 hover:border-[#cd7f32]/50 transition-all duration-300">
           <div className="flex items-center gap-2 lg:gap-3 mb-2 lg:mb-3">
             <div className="p-1.5 sm:p-2 bg-[#cd7f32]/10 rounded-lg">
               <Trophy className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-[#cd7f32]" />
@@ -266,23 +261,21 @@ const DashboardPage = () => {
         </div>
 
         {/* Power Stat */}
-        <div className="bg-[#1a1a1a] border border-[#cd7f32]/30 rounded-lg sm:rounded-xl p-3 sm:p-4 lg:p-6 hover:border-[#cd7f32]/50 transition-all duration-300">
+        <div className="bg-[#1a1a1a] border flex flex-col border-[#cd7f32]/30 rounded-lg sm:rounded-xl p-3 gap-5  sm:p-4 lg:p-6 hover:border-[#cd7f32]/50 transition-all duration-300">
           <div className="flex items-center gap-2 lg:gap-3 mb-2 lg:mb-3">
             <div className="p-1.5 sm:p-2 bg-[#cd7f32]/10 rounded-lg">
-              <Crown className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-[#cd7f32]" />
+              <ChartBar className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-[#cd7f32]" />
             </div>
             <h3 className="font-bold text-[#cd7f32] text-sm sm:text-base">
-              Power
+              Leaderboard
             </h3>
           </div>
-          <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-1">
-            {getStrongestWarrior()?.powerLevel || 0}
-          </div>
-          <div className="text-xs sm:text-sm text-gray-400">Max level</div>
+          <div className="text-xs font-bold text-white mb-1">Coming Soon</div>
+          <div className="text-xs sm:text-sm text-gray-400">Position</div>
         </div>
 
         {/* Progress Stat */}
-        <div className="bg-[#1a1a1a] border border-[#cd7f32]/30 rounded-lg sm:rounded-xl p-3 sm:p-4 lg:p-6 hover:border-[#cd7f32]/50 transition-all duration-300">
+        <div className="bg-[#1a1a1a] border flex flex-col border-[#cd7f32]/30 rounded-lg sm:rounded-xl p-3 gap-5  sm:p-4 lg:p-6 hover:border-[#cd7f32]/50 transition-all duration-300">
           <div className="flex items-center gap-2 lg:gap-3 mb-2 lg:mb-3">
             <div className="p-1.5 sm:p-2 bg-[#cd7f32]/10 rounded-lg">
               <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-[#cd7f32]" />
@@ -291,14 +284,7 @@ const DashboardPage = () => {
               Progress
             </h3>
           </div>
-          <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-1">
-            {Math.min(
-              100,
-              userWarriors.length * 20 +
-                (userProfile?.totalBattlesWon || 0) * 10
-            )}
-            %
-          </div>
+          <div className="text-xs font-bold text-white mb-1">Coming Soon</div>
           <div className="text-xs sm:text-sm text-gray-400">Academy</div>
         </div>
       </div>
@@ -466,7 +452,7 @@ const DashboardPage = () => {
 
           <div className="text-center p-4 sm:p-6 bg-[#2a2a2a] rounded-lg">
             <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-[#cd7f32] mb-2">
-              {gameConfig?.totalWarriorsCreated || 0}
+              {gameConfig?.totalWarriors?.toString() || "0"}
             </div>
             <div className="text-xs sm:text-sm text-gray-400 font-medium">
               Global Warriors Forged

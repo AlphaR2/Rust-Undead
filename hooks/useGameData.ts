@@ -11,6 +11,7 @@ import {
   UserProfile,
   GameConfig,
 } from "../types/undead";
+import { a } from "framer-motion/client";
 
 // Program account types
 type UndeadWarriorProgramAccount = ProgramAccount<AnchorUndeadWarrior>;
@@ -150,14 +151,15 @@ export const useGameData = () => {
     if (!program || !configPda) return;
 
     try {
-      const config: AnchorGameConfig = await program.account.gameConfig.fetch(
+      const config: AnchorGameConfig = await program.account.config.fetch(
         configPda
       );
       setGameConfig({
         admin: config.admin,
-        totalWarriorsCreated: config.totalWarriorsCreated,
-        totalBattlesFought: config.totalBattlesFought,
-        initializedAt: config.initializedAt.toNumber(),
+        cooldownTime: config.cooldownTime,
+        createdAt: config.createdAt,
+        totalWarriors: config.totalWarriors,
+        totalBattles: config.totalBattles,
         isPaused: config.isPaused,
       });
     } catch (error: any) {
@@ -176,6 +178,8 @@ export const useGameData = () => {
         owner: profile.owner,
         warriorsCreated: profile.warriorsCreated,
         totalBattlesWon: profile.totalBattlesWon,
+        totalBattlesLost: profile.totalBattlesLost,
+        totalPoints: profile.totalPoints,
         totalBattlesFought: profile.totalBattlesFought,
         joinDate: profile.joinDate.toNumber(),
       });
@@ -208,12 +212,25 @@ export const useGameData = () => {
           name: account.account.name,
           dna: account.account.dna,
           owner: account.account.owner,
-          powerLevel: account.account.powerLevel,
+          baseAttack: account.account.baseAttack,
+          baseDefense: account.account.baseDefense,
+          baseKnowledge: account.account.baseKnowledge,
+          currentHp: account.account.currentHp,
+          maxHp: account.account.maxHp,
+          warriorClass: account.account.warriorClass,
+          battlesWon: account.account.battlesWon,
+          battlesLost: account.account.battlesLost,
+          level: account.account.level,
+          lastBattleAt: account.account.lastBattleAt,
+          cooldownExpiresAt: account.account.cooldownExpiresAt,
           createdAt: account.account.createdAt.toNumber(),
-          battleWins: account.account.battleWins,
-          battlesFought: account.account.battlesFought,
           experiencePoints: account.account.experiencePoints.toNumber(),
           address: account.publicKey,
+          imageRarity: account.account.imageRarity,
+          imageIndex: account.account.imageIndex,
+          imageUri: account.account.imageUri,
+          isOnCooldown:
+            account.account.cooldownExpiresAt.toNumber() > Date.now() / 1000,
         })
       );
 

@@ -24,6 +24,8 @@ import {
   AlertTriangle,
   RefreshCw,
   ExternalLink,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from "lucide-react";
 import { useGameData } from "@/hooks/useGameData";
 import { usePrivy } from "@privy-io/react-auth";
@@ -105,6 +107,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false); // New state for desktop collapse
   const [copiedAddress, setCopiedAddress] = useState<boolean>(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
   const [notification, setNotification] = useState<NotificationState>({
@@ -344,6 +347,12 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     return descriptions[activeSection as keyof typeof descriptions] || "";
   };
 
+  // Toggle sidebar collapse
+  const toggleSidebarCollapse = () => {
+    setSidebarCollapsed(!sidebarCollapsed);
+    playSound("click");
+  };
+
   // Show loading state while checking authentication or redirecting
   if (!gameReady || isRedirecting) {
     return (
@@ -381,26 +390,34 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
 
   // Enhanced user info component with dual wallet support
   const UserInfoSection = () => {
-    return (
-      <div className="space-y-3 mb-4">
-        {/* User Identity - Privy or External Wallet */}
-        <div className="flex items-center gap-2">
-          <User className="w-4 h-4 text-[#cd7f32]" />
-          <div className="flex-1 min-w-0">
-            {authenticated && user?.google?.name ? (
-              <div className="text-xs text-gray-300 truncate">
-                {user.google.name}
-              </div>
-            ) : connected && wallet ? (
-              <div className="text-xs text-gray-300 truncate">
-                Connected via {wallet.adapter.name}
-              </div>
+    if (sidebarCollapsed) {
+      return (
+        <div className="flex flex-col items-center space-y-3 mb-6">
+          {/* User Avatar/Icon */}
+          <div className="w-10 h-10 bg-gradient-to-br from-[#cd7f32]/20 to-[#cd7f32]/10 rounded-full flex items-center justify-center ring-2 ring-[#cd7f32]/30">
+            {walletIcon ? (
+              <img src={walletIcon} alt={walletName} className="w-6 h-6" />
             ) : (
-              <div className="text-xs text-gray-300">Connected</div>
+              <User className="w-5 h-5 text-[#cd7f32]" />
+            )}
+          </div>
+
+          {/* Balance indicator */}
+          <div className="flex flex-col items-center">
+            {balanceLoading ? (
+              <Loader2 className="w-4 h-4 animate-spin text-[#cd7f32]" />
+            ) : isLowBalance ? (
+              <AlertTriangle className="w-4 h-4 text-orange-400" />
+            ) : (
+              <div className=""></div>
             )}
           </div>
         </div>
+      );
+    }
 
+    return (
+      <div className="space-y-3 mb-4">
         {/* Wallet Details */}
         {walletConnected && userAddress && (
           <div className="space-y-2">
@@ -509,6 +526,12 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     );
   };
 
+  // Calculate sidebar width based on state
+  const getSidebarWidth = () => {
+    if (isMobile) return sidebarOpen ? "w-72" : "w-0";
+    return sidebarCollapsed ? "w-24" : "w-72";
+  };
+
   return (
     <NavigationContext.Provider value={{ activeSection, setActiveSection }}>
       <div className="h-screen bg-gradient-to-br from-[#0f0f0f] via-[#1a1a1a] to-[#2a2a2a] flex">
@@ -516,7 +539,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         {notification.show && (
           <div className="fixed top-4 right-4 z-50 max-w-sm">
             <div
-              className={`p-4 rounded-lg border shadow-lg ${
+              className={`p-4 rounded-lg border shadow-lg backdrop-blur-sm ${
                 notification.status === "success"
                   ? "bg-green-900/90 border-green-500/50 text-green-100"
                   : "bg-red-900/90 border-red-500/50 text-red-100"
@@ -553,51 +576,76 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           className={`
             ${isMobile ? "fixed" : "relative"} 
             ${isMobile && !sidebarOpen ? "-translate-x-full" : "translate-x-0"}
-            w-72 h-[100%] bg-[#1a1a1a] border-r border-[#cd7f32]/30 flex flex-col z-40 transition-transform duration-300 ease-in-out
+            ${getSidebarWidth()} h-[100%] bg-[#1a1a1a] border-r border-[#cd7f32]/30 flex flex-col z-40 transition-all duration-300 ease-in-out overflow-hidden
           `}
         >
           {/* Sidebar Header */}
-          <div className="p-4 sm:p-6 border-b border-[#cd7f32]/30">
+          <div
+            className={`border-b border-[#cd7f32]/30 ${
+              sidebarCollapsed && !isMobile ? "p-3" : "p-4 sm:p-6"
+            }`}
+          >
             <div className="flex items-center justify-between mb-4 sm:mb-6">
               <div className="flex items-center gap-3">
-                <h1 className="text-[16px] font-bold text-[#cd7f32]">
-                  Command Center
-                </h1>
-                {/* Control Buttons */}
-                <div className="flex">
-                  <button
-                    onClick={() => setSoundEnabled(!soundEnabled)}
-                    className="p-2 text-gray-400 hover:text-[#cd7f32] transition-colors rounded-lg hover:bg-[#cd7f32]/10"
-                    title={soundEnabled ? "Disable Sound" : "Enable Sound"}
-                  >
-                    {soundEnabled ? (
-                      <Volume2 className="w-4 h-4" />
-                    ) : (
-                      <VolumeX className="w-4 h-4" />
-                    )}
-                  </button>
-                  <button
-                    onClick={handleDisconnectAll}
-                    disabled={isRedirecting}
-                    className="p-2 text-red-400 hover:text-red-300 transition-colors rounded-lg hover:bg-red-400/10 disabled:opacity-50 disabled:cursor-not-allowed"
-                    title="Disconnect All"
-                  >
-                    {isRedirecting ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <LogOut className="w-4 h-4" />
-                    )}
-                  </button>
-                </div>
+                {!sidebarCollapsed || isMobile ? (
+                  <h1 className="text-[16px] font-bold text-[#cd7f32]">
+                    Command Center
+                  </h1>
+                ) : (
+                  <div className="flex items-center justify-center w-full"></div>
+                )}
+
+                {/* Control Buttons - only show when expanded or on mobile */}
+                {(!sidebarCollapsed || isMobile) && (
+                  <div className="flex">
+                    <button
+                      onClick={() => setSoundEnabled(!soundEnabled)}
+                      className="p-2 text-gray-400 hover:text-[#cd7f32] transition-colors rounded-lg hover:bg-[#cd7f32]/10"
+                      title={soundEnabled ? "Disable Sound" : "Enable Sound"}
+                    >
+                      {soundEnabled ? (
+                        <Volume2 className="w-4 h-4" />
+                      ) : (
+                        <VolumeX className="w-4 h-4" />
+                      )}
+                    </button>
+                    <button
+                      onClick={handleDisconnectAll}
+                      disabled={isRedirecting}
+                      className="p-2 text-red-400 hover:text-red-300 transition-colors rounded-lg hover:bg-red-400/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                      title="Disconnect All"
+                    >
+                      {isRedirecting ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <LogOut className="w-4 h-4" />
+                      )}
+                    </button>
+                  </div>
+                )}
               </div>
 
-              {/* Mobile Close Button */}
-              {isMobile && (
+              {/* Mobile Close Button / Desktop Collapse Button */}
+              {isMobile ? (
                 <button
                   onClick={() => setSidebarOpen(false)}
                   className="p-2 text-gray-400 hover:text-[#cd7f32] transition-colors rounded-lg hover:bg-[#cd7f32]/10 lg:hidden"
                 >
                   <X className="w-5 h-5" />
+                </button>
+              ) : (
+                <button
+                  onClick={toggleSidebarCollapse}
+                  className="p-2 items-center justify-center flex text-gray-400 hover:text-[#cd7f32] transition-colors rounded-lg hover:bg-[#cd7f32]/10 group"
+                  title={
+                    sidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"
+                  }
+                >
+                  {sidebarCollapsed ? (
+                    <PanelLeftOpen className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                  ) : (
+                    <PanelLeftClose className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                  )}
                 </button>
               )}
             </div>
@@ -615,33 +663,52 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
                   onClick={() => handleNavigation(item.id)}
                   onMouseEnter={() => playSound("hover")}
                   disabled={item.comingSoon}
-                  className={`w-full flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl transition-all duration-200 relative ${
+                  className={`w-full flex items-center gap-3 transition-all duration-200 relative group ${
+                    sidebarCollapsed && !isMobile
+                      ? "justify-center p-3 rounded-xl"
+                      : "px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg sm:rounded-xl"
+                  } ${
                     activeSection === item.id
-                      ? "bg-[#cd7f32]/20 text-[#cd7f32] border border-[#cd7f32]/50 shadow-lg"
+                      ? sidebarCollapsed && !isMobile
+                        ? "bg-[#cd7f32]/20 text-[#cd7f32]"
+                        : "bg-[#cd7f32]/20 text-[#cd7f32] border border-[#cd7f32]/50 shadow-lg"
                       : item.comingSoon
                       ? "text-gray-500 cursor-not-allowed opacity-50"
+                      : sidebarCollapsed && !isMobile
+                      ? "text-gray-300 hover:bg-[#cd7f32]/10 hover:text-[#cd7f32]"
                       : "text-gray-300 hover:bg-[#cd7f32]/10 hover:text-[#cd7f32] hover:border hover:border-[#cd7f32]/30"
                   }`}
                 >
-                  <div
-                    className={`p-1.5 sm:p-2 rounded-lg ${
-                      activeSection === item.id
-                        ? "bg-[#cd7f32]/30"
-                        : "bg-[#2a2a2a]"
-                    }`}
-                  >
-                    <item.icon className="w-4 h-4 sm:w-5 sm:h-5" />
-                  </div>
-                  <span className="font-medium flex-1 text-left text-sm sm:text-base">
-                    {item.label}
-                  </span>
-                  {item.comingSoon && (
-                    <span className="text-xs bg-gray-600 text-gray-300 px-2 py-1 rounded-full">
-                      Soon
-                    </span>
-                  )}
-                  {activeSection === item.id && !item.comingSoon && (
-                    <ChevronRight className="w-4 h-4" />
+                  {sidebarCollapsed && !isMobile ? (
+                    // Collapsed state - just the icon
+                    <div className="flex items-center justify-center">
+                      <item.icon className="w-5 h-5" />
+                    </div>
+                  ) : (
+                    // Expanded state - full layout
+                    <>
+                      <div
+                        className={`p-1.5 sm:p-2 rounded-lg ${
+                          activeSection === item.id
+                            ? "bg-[#cd7f32]/30"
+                            : "bg-[#2a2a2a]"
+                        }`}
+                      >
+                        <item.icon className="w-4 h-4 sm:w-5 sm:h-5" />
+                      </div>
+
+                      <span className="font-medium flex-1 text-left text-sm sm:text-base">
+                        {item.label}
+                      </span>
+                      {item.comingSoon && (
+                        <span className="text-xs bg-gray-600 text-gray-300 px-2 py-1 rounded-full">
+                          Soon
+                        </span>
+                      )}
+                      {activeSection === item.id && !item.comingSoon && (
+                        <ChevronRight className="w-4 h-4" />
+                      )}
+                    </>
                   )}
                 </button>
               ))}
@@ -649,32 +716,60 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           </nav>
 
           {/* Footer Stats */}
-          <div className="p-4 sm:p-6 border-t border-[#cd7f32]/30 bg-[#0f0f0f]">
-            <div className="text-sm space-y-2 sm:space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-gray-400">Warriors:</span>
-                <span className="text-[#cd7f32] font-bold">
-                  {userWarriors.length}
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-400">Battles:</span>
-                <span className="text-[#cd7f32] font-bold">
-                  {userProfile?.totalBattlesFought || 0}
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-400">Wins:</span>
-                <span className="text-[#cd7f32] font-bold">
-                  {userProfile?.totalBattlesWon || 0}
-                </span>
+          {(!sidebarCollapsed || isMobile) && (
+            <div className="p-4 sm:p-6 border-t border-[#cd7f32]/30 bg-[#0f0f0f]">
+              <div className="text-sm space-y-2 sm:space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400">Warriors:</span>
+                  <span className="text-[#cd7f32] font-bold">
+                    {userWarriors.length}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400">Battles:</span>
+                  <span className="text-[#cd7f32] font-bold">
+                    {userProfile?.totalBattlesFought || 0}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400">Wins:</span>
+                  <span className="text-[#cd7f32] font-bold">
+                    {userProfile?.totalBattlesWon || 0}
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
+          )}
+
+          {/* Collapsed Footer Stats */}
+          {sidebarCollapsed && !isMobile && (
+            <div className="p-3 border-t border-[#cd7f32]/30 bg-[#0f0f0f]">
+              <div className="flex flex-col items-center space-y-3">
+                <div className="flex flex-col items-center space-y-1">
+                  <Sword className="w-4 h-4 text-[#cd7f32]" />
+                  <span className="text-xs text-[#cd7f32] font-bold">
+                    {userWarriors.length}
+                  </span>
+                </div>
+                <div className="flex flex-col items-center space-y-1">
+                  <Shield className="w-4 h-4 text-[#cd7f32]" />
+                  <span className="text-xs text-[#cd7f32] font-bold">
+                    {userProfile?.totalBattlesFought || 0}
+                  </span>
+                </div>
+                <div className="flex flex-col items-center space-y-1">
+                  <Trophy className="w-4 h-4 text-[#cd7f32]" />
+                  <span className="text-xs text-[#cd7f32] font-bold">
+                    {userProfile?.totalBattlesWon || 0}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Main Content Area */}
-        <div className="flex-1 overflow-auto">
+        <div className="flex-1 overflow-auto scrollbar-invisible">
           {/* Header */}
           <div className="bg-[#1a1a1a] border-b border-[#cd7f32]/30 p-4 sm:p-6 lg:p-8">
             <div className="flex items-center justify-between max-w-7xl mx-auto">

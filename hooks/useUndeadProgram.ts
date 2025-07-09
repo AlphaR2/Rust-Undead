@@ -4,8 +4,8 @@ import { useSignTransaction } from "@privy-io/react-auth/solana";
 import { Program, AnchorProvider } from "@coral-xyz/anchor";
 import { PublicKey, Transaction, VersionedTransaction } from "@solana/web3.js";
 import { useWallet, useConnection } from "@solana/wallet-adapter-react";
-import { PROGRAM_ID, PROGRAM_IDL } from "../config/program";
-import { UndeadTypes } from "@/types/idlTypes";
+import { PROGRAM_ID, PROGRAM_IDL, authority } from "../config/program";
+import { RustUndead as UndeadTypes } from "@/types/idlTypes";
 
 // const getRpcEndpoint = (): string => {
 //   const envRpc = process.env.NEXT_PUBLIC_SOLANA_RPC_URL;
@@ -387,17 +387,17 @@ export const usePDAs = (userPublicKey?: PublicKey | null) => {
 
     try {
       const [configPda] = PublicKey.findProgramAddressSync(
-        [Buffer.from("config")],
+        [Buffer.from("config"), authority.toBuffer()],
         PROGRAM_ID
       );
 
       const [profilePda] = PublicKey.findProgramAddressSync(
-        [Buffer.from("profile"), userPublicKey.toBuffer()],
+        [Buffer.from("user_profile"), userPublicKey.toBuffer()],
         PROGRAM_ID
       );
 
       const [achievementsPda] = PublicKey.findProgramAddressSync(
-        [Buffer.from("achievements"), userPublicKey.toBuffer()],
+        [Buffer.from("user_achievements"), userPublicKey.toBuffer()],
         PROGRAM_ID
       );
 
@@ -408,7 +408,7 @@ export const usePDAs = (userPublicKey?: PublicKey | null) => {
 
         const [warriorPda] = PublicKey.findProgramAddressSync(
           [
-            Buffer.from("warrior"),
+            Buffer.from("undead_warrior"),
             userPublicKey.toBuffer(),
             Buffer.from(name.trim()),
           ],

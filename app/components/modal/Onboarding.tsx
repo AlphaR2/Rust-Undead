@@ -12,6 +12,8 @@ import {
   Crown,
   AlertCircle,
   CheckCircle,
+  Dice6,
+  Sparkles,
 } from "lucide-react";
 import { usePrivy } from "@privy-io/react-auth";
 import {
@@ -20,7 +22,16 @@ import {
   useWalletInfo,
   useCurrentWallet,
 } from "@/hooks/useUndeadProgram";
-import { createWarrior, generateRandomDNA } from "@/hooks/useGameActions";
+import {
+  createWarriorWithVRF,
+  generateRandomDNA,
+  WARRIOR_CLASS_INFO,
+  VRFStage,
+  WarriorCreationResult,
+} from "@/hooks/useGameActions";
+import { Warrior, WarriorClass } from "@/types/undead";
+import WarriorCard from "../Card";
+import { PublicKey } from "@solana/web3.js";
 
 interface OnboardingModalProps {
   isOpen: boolean;
@@ -28,8 +39,10 @@ interface OnboardingModalProps {
   onComplete: (data?: {
     selectedPath?: string;
     warriorName?: string;
+    warriorClass?: WarriorClass;
     warriorDNA?: string;
     creationSuccess?: boolean;
+    warrior?: any;
   }) => void;
 }
 
@@ -56,31 +69,31 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
   const [warriorName, setWarriorName] = useState<string>("");
   const [warriorDNA, setWarriorDNA] = useState<string>("");
   const [selectedPath, setSelectedPath] = useState<string | null>(null);
+  const [selectedClass, setSelectedClass] = useState<WarriorClass | null>(null);
   const [typewriterText, setTypewriterText] = useState<string>("");
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
   const [skillsRevealed, setSkillsRevealed] = useState<number[]>([]);
-  const [selectedWarriorImage, setSelectedWarriorImage] = useState<string>("");
   const [isCreatingWarrior, setIsCreatingWarrior] = useState<boolean>(false);
   const [creationError, setCreationError] = useState<string>("");
   const [creationSuccess, setCreationSuccess] = useState<boolean>(false);
+  const [vrfStage, setVrfStage] = useState<VRFStage>({
+    stage: "initializing",
+    progress: 0,
+  });
+  const [vrfMessage, setVrfMessage] = useState<string>("");
+  const [createdWarrior, setCreatedWarrior] = useState<Warrior | null>(null);
 
   // Updated wallet hooks
   const { authenticated, user } = usePrivy();
   const { publicKey, isConnected, walletType } = useWalletInfo();
   const { address: walletAddress, name: walletName } = useCurrentWallet();
 
-  // Solana program integration with new system
+  // Solana program integration
   const program = useUndeadProgram();
-  const { configPda, profilePda, getWarriorPda } = usePDAs(publicKey);
+  const { configPda, profilePda, getWarriorPda, achievementsPda } =
+    usePDAs(publicKey);
 
-  const totalSteps = 5;
-
-  // Warrior image options
-  const warriorImages = [
-    "/men_warrior.png",
-    "/women_warrior.png",
-    "/warrior_landing.png",
-  ];
+  const totalSteps = 6;
 
   const typewriterTexts = [
     "The blockchain realm has awakened ancient mysteries...",
@@ -126,23 +139,19 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
   // Initialize modal state
   useEffect(() => {
     if (isOpen) {
-      // Reset all state when modal opens
       setCurrentStep(1);
       setWarriorName("");
       setSelectedPath(null);
+      setSelectedClass(null);
       setTypewriterText("");
       setSkillsRevealed([]);
       setCreationError("");
       setCreationSuccess(false);
       setIsCreatingWarrior(false);
+      setCreatedWarrior(null);
 
-      // Generate initial DNA and select random warrior image
       const initialDNA = generateRandomDNA();
       setWarriorDNA(initialDNA);
-
-      const randomImage =
-        warriorImages[Math.floor(Math.random() * warriorImages.length)];
-      setSelectedWarriorImage(randomImage);
     }
   }, [isOpen]);
 
@@ -226,9 +235,9 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
           setTimeout(() => createTone(659, 0.5), 400);
           break;
         case "success":
-          createTone(523, 0.2); // C5
-          setTimeout(() => createTone(659, 0.2), 150); // E5
-          setTimeout(() => createTone(784, 0.3), 300); // G5
+          createTone(523, 0.2);
+          setTimeout(() => createTone(659, 0.2), 150);
+          setTimeout(() => createTone(784, 0.3), 300);
           break;
       }
     } catch (error) {
@@ -236,7 +245,7 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
     }
   };
 
-  // Create warrior on Solana - Updated for new wallet system
+  // Create warrior with VRF handling
   const handleCreateWarrior = async () => {
     if (
       !program ||
@@ -244,10 +253,11 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
       !configPda ||
       !profilePda ||
       !getWarriorPda ||
-      !warriorName.trim()
+      !warriorName.trim() ||
+      !selectedClass
     ) {
       setCreationError(
-        "Please ensure wallet is connected and enter a warrior name"
+        "Please ensure wallet is connected and all fields are filled"
       );
       return;
     }
@@ -260,28 +270,36 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
 
     setIsCreatingWarrior(true);
     setCreationError("");
+    setCreationSuccess(false);
 
     try {
-    
       const warriorPda = getWarriorPda(warriorName.trim());
 
-      const result = await createWarrior({
+      const result: WarriorCreationResult = await createWarriorWithVRF({
         program,
         userPublicKey: publicKey,
         name: warriorName.trim(),
         dna: finalDNA,
         warriorPda,
         profilePda,
+        userAchievementsPda: achievementsPda,
         configPda,
+        warriorClass: selectedClass,
+        onProgress: (stage, message) => {
+          setVrfStage(stage);
+          setVrfMessage(message);
+        },
       });
 
       if (result.success) {
+        const warrior: any = result?.warrior;
         setCreationSuccess(true);
+        setCreatedWarrior(warrior);
         playSound("success");
         // Auto-advance after success
         setTimeout(() => {
           nextStep();
-        }, 2000);
+        }, 3000);
       } else {
         setCreationError(result.error || "Failed to create warrior");
       }
@@ -316,40 +334,98 @@ const OnboardingModal: React.FC<OnboardingModalProps> = ({
       onComplete({
         selectedPath: selectedPath || "architect",
         warriorName: warriorName || "Unnamed Warrior",
+        warriorClass: selectedClass || WarriorClass.Validator,
         warriorDNA: warriorDNA || "XXXXXXXX",
         creationSuccess,
+        warrior: createdWarrior,
       });
     }, 500);
   };
 
-  // Generate conceptual code preview
-  const generateConceptualCode = (name: string, dna: string) => {
+  // Generate warrior account code with proper structure
+  const generateWarriorAccountCode = (
+    name: string,
+    dna: string,
+    warriorClass: WarriorClass | null
+  ) => {
+    const className = warriorClass ? warriorClass.toLowerCase() : "validator";
+
     return `#[account]
 #[derive(InitSpace)]
 pub struct UndeadWarrior {
     #[max_len(32)]
     pub name: "${name || "Unnamed"}",          
-    #[max_len(8)]       
-    pub dna: "${dna || "XXXXXXXX"}",          
-    pub owner: Pubkey,          // Your wallet
-    pub power_level: u32,       // Starts at 1
-    pub created_at: i64,        // Unix timestamp
-    pub battle_wins: u32,       // Victories
-    pub battles_fought: u32,    // Total battles
-    pub experience_points: u64, // XP earned
+    pub owner: Pubkey,              // ${publicKey?.toString().slice(0, 8)}...
+    pub dna: [u8; 8],              // ${dna || "XXXXXXXX"} (visual DNA)
+    pub created_at: i64,           // Unix timestamp
+    pub base_attack: u16,          // VRF Generated (${getStatRange(
+      warriorClass,
+      "attack"
+    )})
+    pub base_defense: u16,         // VRF Generated (${getStatRange(
+      warriorClass,
+      "defense"
+    )})
+    pub base_knowledge: u16,       // VRF Generated (${getStatRange(
+      warriorClass,
+      "knowledge"
+    )})
+    pub current_hp: u16,           // Starts at 100
+    pub max_hp: u16,              // Starts at 100
+    pub warrior_class: WarriorClass::${
+      className.charAt(0).toUpperCase() + className.slice(1)
+    },
+    pub battles_won: u32,          // Starts at 0
+    pub battles_lost: u32,         // Starts at 0
+    pub experience_points: u64,    // Earned through battles
+    pub level: u16,               // Calculated from XP
+    pub image_rarity: ImageRarity, // VRF determines rarity
+    pub image_index: u8,          // VRF selects specific image
+    pub image_uri: String,        // Generated image URL
+    pub last_battle_at: i64,      // Cooldown tracking
+    pub cooldown_expires_at: i64, // Battle cooldown
+    pub bump: u8,                 // PDA bump seed
 }
 
-// 🔥 Real Solana blockchain account!
-// - Permanent on-chain storage
-// - Costs SOL to create (rent)
-// - Forms your warrior's foundation`;
+// 🔥 This creates a PERMANENT on-chain account!
+// - Costs ~0.002 SOL in rent (refundable)
+// - Stats and image determined by VRF (provably fair)
+// - Fully owned by your wallet forever`;
   };
 
-  // Select random warrior image
-  const selectRandomWarriorImage = () => {
-    const randomImage =
-      warriorImages[Math.floor(Math.random() * warriorImages.length)];
-    setSelectedWarriorImage(randomImage);
+  const getStatRange = (
+    warriorClass: WarriorClass | null,
+    stat: "attack" | "defense" | "knowledge"
+  ): string => {
+    if (!warriorClass) return "50-100";
+
+    const info = WARRIOR_CLASS_INFO[warriorClass];
+    if (!info) return "50-100";
+
+    // Extract ranges from stat distribution
+    if (info.statDistribution.includes("High")) {
+      if (stat === "attack" && warriorClass === WarriorClass.Daemon)
+        return "100-140";
+      if (stat === "defense" && warriorClass === WarriorClass.Guardian)
+        return "100-140";
+      if (stat === "knowledge" && warriorClass === WarriorClass.Oracle)
+        return "100-140";
+    }
+    if (
+      info.statDistribution.includes("Balanced") &&
+      warriorClass === WarriorClass.Validator
+    ) {
+      return "70-110";
+    }
+    if (
+      info.statDistribution.includes("Low DEF") &&
+      stat === "defense" &&
+      warriorClass === WarriorClass.Daemon
+    ) {
+      return "40-60";
+    }
+
+    return "60-100"; // Default moderate range
   };
 
   if (!isOpen) return null;
@@ -361,30 +437,11 @@ pub struct UndeadWarrior {
         onClick={onClose}
       />
 
-      {/* Modal Container - Enhanced */}
-      <div className="relative w-full max-w-5xl max-h-[85vh] bg-gradient-to-br from-[#2a2a2a] via-[#1a1a1a] to-[#0f0f0f] border-2 border-[#cd7f32]/50 rounded-2xl overflow-hidden shadow-2xl flex flex-col animate-in zoom-in-95 duration-300">
-        {/* Header - Enhanced */}
-        <div className="flex items-center justify-between p-6 border-b border-[#cd7f32]/30 bg-gradient-to-r from-[#2a2a2a] to-[#1a1a1a] flex-shrink-0">
-          <div className="flex items-center gap-4">
-            <div className="text-3xl animate-pulse">🧠⚡</div>
-            <div>
-              <h2 className="text-2xl font-bold text-[#cd7f32]">
-                Forge Your Warrior
-              </h2>
-              <p className="text-sm text-gray-400">
-                Step {currentStep} of {totalSteps} -{" "}
-                {isConnected ? "🟢 Blockchain Ready" : "🟡 Demo Mode"}
-              </p>
-              {isConnected && walletAddress && (
-                <p className="text-xs text-green-400 flex items-center gap-2">
-                  ✅ {walletName}: {walletAddress.slice(0, 4)}...
-                  {walletAddress.slice(-4)}
-                </p>
-              )}
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
+      {/* Modal Container */}
+      <div className="relative w-full max-w-6xl max-h-[90vh] bg-gradient-to-br from-[#2a2a2a] via-[#1a1a1a] to-[#0f0f0f] border-2 border-[#cd7f32]/50 rounded-2xl overflow-hidden shadow-2xl flex flex-col animate-in zoom-in-95 duration-300">
+        {/* Header */}
+        <div className="flex items-center justify-between p-2 border-b border-[#cd7f32]/30 bg-gradient-to-r from-[#2a2a2a] to-[#1a1a1a] flex-shrink-0">
+          <div className="flex items-center gap-1">
             <button
               onClick={() => setSoundEnabled(!soundEnabled)}
               className="p-2 text-gray-400 hover:text-[#cd7f32] transition-colors rounded-lg hover:bg-[#cd7f32]/10"
@@ -415,7 +472,7 @@ pub struct UndeadWarrior {
           <div className="absolute inset-0 bg-gradient-to-r from-[#cd7f32]/20 to-transparent animate-pulse" />
         </div>
 
-        {/* Content Area - Enhanced */}
+        {/* Content Area */}
         <div className="p-8 overflow-y-auto flex-1 custom-scrollbar">
           {/* Step 1: Welcome & Introduction */}
           {currentStep === 1 && (
@@ -600,7 +657,7 @@ pub struct UndeadWarrior {
                 >
                   <span className="flex items-center gap-3">
                     <Target className="w-5 h-5" />
-                    Create My Warrior
+                    Choose Warrior Class
                     <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                   </span>
                 </button>
@@ -608,12 +665,147 @@ pub struct UndeadWarrior {
             </div>
           )}
 
-          {/* Step 4: Warrior Creation */}
+          {/* Step 4: NEW - Warrior Class Selection */}
           {currentStep === 4 && (
+            <div className="space-y-8 animate-in fade-in-50 duration-700">
+              <div className="text-center">
+                <div className="text-5xl mb-4">⚔️🧬</div>
+                <h3 className="text-3xl font-bold text-[#cd7f32] mb-2">
+                  Choose Your Warrior Class
+                </h3>
+                <p className="text-gray-300 text-lg">
+                  Each class has unique combat traits and stat distributions
+                </p>
+                <p className="text-sm text-gray-400 mt-2">
+                  ⚡ Stats and appearance are randomly generated by Magicblock
+                  VRF
+                </p>
+              </div>
+
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
+                {Object.entries(WARRIOR_CLASS_INFO).map(
+                  ([classKey, classInfo]) => {
+                    const warriorClass = classKey as WarriorClass;
+                    const isSelected = selectedClass === warriorClass;
+
+                    return (
+                      <div
+                        key={classKey}
+                        onClick={() => setSelectedClass(warriorClass)}
+                        className={`cursor-pointer p-6 rounded-xl border-2 transition-all duration-300 transform hover:scale-105 ${
+                          isSelected
+                            ? "border-[#cd7f32] bg-[#cd7f32]/10 shadow-lg shadow-[#cd7f32]/30 scale-105"
+                            : "border-gray-600/30 bg-[#1a1a1a] hover:border-[#cd7f32]/50"
+                        }`}
+                      >
+                        <div className="text-center space-y-4">
+                          <div className="text-6xl">{classInfo.icon}</div>
+                          <h4 className="text-xl font-bold text-[#cd7f32]">
+                            {classInfo.title}
+                          </h4>
+
+                          <div className="space-y-3 text-left">
+                            <div>
+                              <div className="text-sm font-medium text-gray-300 mb-1">
+                                Description:
+                              </div>
+                              <div className="text-xs text-gray-400">
+                                {classInfo.description}
+                              </div>
+                            </div>
+
+                            <div>
+                              <div className="text-sm font-medium text-gray-300 mb-1">
+                                Combat Style:
+                              </div>
+                              <div className="text-xs text-gray-400">
+                                {classInfo.traits}
+                              </div>
+                            </div>
+
+                            <div>
+                              <div className="text-sm font-medium text-gray-300 mb-1">
+                                Stat Range:
+                              </div>
+                              <div className="text-xs text-gray-400">
+                                {classInfo.statDistribution}
+                              </div>
+                            </div>
+
+                            <div>
+                              <div className="text-sm font-medium text-gray-300 mb-1">
+                                Special:
+                              </div>
+                              <div className="text-xs text-[#cd7f32]">
+                                {classInfo.specialAbility}
+                              </div>
+                            </div>
+                          </div>
+
+                          {isSelected && (
+                            <div className="text-[#cd7f32] animate-pulse">
+                              <CheckCircle className="w-6 h-6 mx-auto" />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  }
+                )}
+              </div>
+
+              <div className="bg-blue-500/20 border border-blue-500/50 rounded-xl p-4 max-w-2xl mx-auto">
+                <div className="flex items-center gap-2 mb-2">
+                  <Sparkles className="w-5 h-5 text-blue-400" />
+                  <h4 className="text-blue-300 font-bold">Magic VRF </h4>
+                </div>
+                <div className="text-blue-300 text-sm space-y-1">
+                  <p>
+                    🎲 Combat stats are randomly generated within class ranges
+                  </p>
+                  <p>
+                    🎨 Warrior appearance is randomly selected from class-themed
+                    artwork
+                  </p>
+                  <p>
+                    💎 Image rarity (Common/Uncommon/Rare) determined by cosmic
+                    chance
+                  </p>
+                  <p>⚡ All randomness is provably fair using Magicblock VRF</p>
+                </div>
+              </div>
+
+              <div className="text-center space-x-4">
+                <button
+                  onClick={prevStep}
+                  className="px-6 py-3 border border-[#cd7f32]/50 text-[#cd7f32] rounded-lg hover:bg-[#cd7f32]/10 transition-colors"
+                >
+                  Back
+                </button>
+                <button
+                  onClick={nextStep}
+                  disabled={!selectedClass}
+                  className="group bg-gradient-to-r from-[#cd7f32] to-[#ff8c42] hover:from-[#ff8c42] hover:to-[#cd7f32] text-black font-bold text-lg px-8 py-3 rounded-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <span className="flex items-center gap-3">
+                    <Zap className="w-5 h-5" />
+                    Forge My Warrior
+                    <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  </span>
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Step 5: Warrior Creation */}
+          {currentStep === 5 && (
             <div className="space-y-6 animate-in fade-in-50 duration-700">
               <div className="text-center">
                 <h3 className="text-3xl font-bold text-[#cd7f32] mb-2">
-                  Forge Your Warrior
+                  Forge Your{" "}
+                  {selectedClass
+                    ? WARRIOR_CLASS_INFO[selectedClass].title
+                    : "Warrior"}
                 </h3>
                 <p className="text-gray-300">
                   Create your on-chain avatar for the blockchain realm
@@ -623,6 +815,25 @@ pub struct UndeadWarrior {
               <div className="grid lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
                 {/* Left: Warrior Creation */}
                 <div className="space-y-6">
+                  {/* Selected Class Display */}
+                  {selectedClass && (
+                    <div className="bg-[#1a1a1a] border border-[#cd7f32]/30 rounded-xl p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="text-3xl">
+                          {WARRIOR_CLASS_INFO[selectedClass].icon}
+                        </div>
+                        <div>
+                          <div className="text-lg font-bold text-[#cd7f32]">
+                            {WARRIOR_CLASS_INFO[selectedClass].title} Class
+                          </div>
+                          <div className="text-sm text-gray-400">
+                            {WARRIOR_CLASS_INFO[selectedClass].description}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-3">
                       Warrior Name:
@@ -642,7 +853,7 @@ pub struct UndeadWarrior {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-3">
-                      Unique DNA (auto-generated):
+                      Unique DNA (click dice to randomize):
                     </label>
                     <div className="flex gap-3">
                       <input
@@ -659,13 +870,15 @@ pub struct UndeadWarrior {
                       />
                       <button
                         onClick={() => setWarriorDNA(generateRandomDNA())}
-                        className="px-4 py-3 bg-[#cd7f32]/20 border border-[#cd7f32]/50 rounded-xl text-[#cd7f32] hover:bg-[#cd7f32]/30 transition-colors"
+                        className="px-4 py-3 bg-[#cd7f32]/20 border border-[#cd7f32]/50 rounded-xl text-[#cd7f32] hover:bg-[#cd7f32]/30 transition-colors flex items-center gap-2"
+                        title="Click to randomize DNA"
                       >
-                        🎲
+                        <Dice6 className="w-5 h-5" />
                       </button>
                     </div>
                     <p className="text-xs text-gray-500 mt-1">
-                      {warriorDNA.length}/8 characters
+                      {warriorDNA.length}/8 characters - This affects visual
+                      appearance
                     </p>
                   </div>
 
@@ -677,45 +890,40 @@ pub struct UndeadWarrior {
 
                     <div className="text-center space-y-4">
                       <div className="relative inline-block">
-                        <img
-                          src={selectedWarriorImage}
-                          alt="Warrior Avatar"
-                          className="w-32 h-32 rounded-xl border-2 border-[#cd7f32]/50 object-cover bg-[#0f0f0f]"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src =
-                              "data:image/svg+xml;base64," +
-                              btoa(`
-                              <svg width="128" height="128" xmlns="http://www.w3.org/2000/svg">
-                                <rect width="128" height="128" fill="#1a1a1a"/>
-                                <text x="64" y="64" text-anchor="middle" dominant-baseline="middle" fill="#cd7f32" font-size="40">⚔️</text>
-                              </svg>
-                            `);
-                          }}
-                        />
-                        <button
-                          onClick={selectRandomWarriorImage}
-                          className="absolute -bottom-2 -right-2 w-8 h-8 bg-[#cd7f32] hover:bg-[#ff8c42] rounded-full flex items-center justify-center text-black transition-colors"
-                          title="Change appearance"
-                        >
-                          🎲
-                        </button>
+                        <div className="w-32 h-32 rounded-xl border-2 border-[#cd7f32]/50 bg-gradient-to-br from-[#cd7f32]/20 to-[#ff8c42]/20 flex items-center justify-center">
+                          <div className="text-center">
+                            <div className="text-4xl mb-2">
+                              {selectedClass
+                                ? WARRIOR_CLASS_INFO[selectedClass].icon
+                                : "⚔️"}
+                            </div>
+                            <div className="text-xs text-gray-400">
+                              Image randomly
+                            </div>
+                            <div className="text-xs text-gray-400">
+                              generated by VRF
+                            </div>
+                          </div>
+                        </div>
+                        <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-[#cd7f32] rounded-full flex items-center justify-center text-black">
+                          <Sparkles className="w-4 h-4" />
+                        </div>
                       </div>
 
                       <div className="text-lg font-bold text-[#cd7f32]">
                         {warriorName || "Unnamed Warrior"}
                       </div>
 
-                      {selectedPath && (
-                        <div className="text-sm text-gray-400">
-                          Path:{" "}
-                          {paths.find((p) => p.id === selectedPath)?.title}
-                        </div>
-                      )}
-
                       <div className="bg-[#0f0f0f] p-3 rounded-lg border border-[#cd7f32]/20">
                         <div className="text-sm text-gray-300 space-y-1">
                           <div className="text-[#cd7f32] font-mono">
                             DNA: {warriorDNA || "XXXXXXXX"}
+                          </div>
+                          <div className="text-gray-400">
+                            Class:{" "}
+                            {selectedClass
+                              ? WARRIOR_CLASS_INFO[selectedClass].title
+                              : "None"}
                           </div>
                         </div>
                         {isConnected ? (
@@ -748,9 +956,13 @@ pub struct UndeadWarrior {
                       </span>
                     </div>
                   </div>
-                  <pre className="p-4 text-sm overflow-x-auto text-gray-300 h-80">
+                  <pre className="p-4 text-sm overflow-x-auto text-gray-300 h-80 overflow-y-auto">
                     <code>
-                      {generateConceptualCode(warriorName, warriorDNA)}
+                      {generateWarriorAccountCode(
+                        warriorName,
+                        warriorDNA,
+                        selectedClass
+                      )}
                     </code>
                   </pre>
 
@@ -769,12 +981,41 @@ pub struct UndeadWarrior {
                         </span>
                       </div>
                       <div className="text-[#cd7f32] font-mono text-xs">
-                        This warrior will be stored permanently on-chain!
+                        VRF will determine stats and image within 30-60 seconds!
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
+
+              {/* VRF Progress Display */}
+              {isCreatingWarrior && (
+                <div className="bg-[#1a1a1a] border border-[#cd7f32]/30 rounded-xl p-6 max-w-2xl mx-auto">
+                  <div className="text-center space-y-4">
+                    <div className="text-lg font-bold text-[#cd7f32]">
+                      Forging Your Warrior
+                    </div>
+
+                    <div className="w-full bg-[#0f0f0f] h-3 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-to-r from-[#cd7f32] to-[#ff8c42] transition-all duration-500 ease-out"
+                        style={{ width: `${vrfStage.progress}%` }}
+                      />
+                    </div>
+
+                    <div className="text-sm text-gray-300">{vrfMessage}</div>
+
+                    <div className="flex items-center justify-center gap-2">
+                      <Loader2 className="w-5 h-5 animate-spin text-[#cd7f32]" />
+                      <span className="text-sm text-gray-400">
+                        {vrfStage.stage === "polling"
+                          ? "Waiting for VRF..."
+                          : "Processing..."}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Error/Success Messages */}
               {creationError && (
@@ -794,6 +1035,16 @@ pub struct UndeadWarrior {
                       ✨ Warrior successfully forged on Solana blockchain!
                     </p>
                   </div>
+                  {createdWarrior && (
+                    <div className="mt-3 text-sm text-green-200 space-y-1">
+                      <div>
+                        ⚔️ ATK: {createdWarrior.baseAttack} | 🛡️ DEF:{" "}
+                        {createdWarrior.baseDefense} | 🧠 KNOW:{" "}
+                        {createdWarrior.baseKnowledge}
+                      </div>
+                      <div>🎨 Rarity: {createdWarrior.imageRarity}</div>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -813,6 +1064,7 @@ pub struct UndeadWarrior {
                       !warriorName.trim() ||
                       !warriorDNA ||
                       warriorDNA.length !== 8 ||
+                      !selectedClass ||
                       isCreatingWarrior ||
                       creationSuccess
                     }
@@ -851,16 +1103,9 @@ pub struct UndeadWarrior {
             </div>
           )}
 
-          {/* Step 5: Journey Complete */}
-          {currentStep === 5 && (
+          {/* Step 6: Journey Complete */}
+          {currentStep === 6 && (
             <div className="text-center space-y-8 animate-in fade-in-50 duration-700">
-              <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/30 to-purple-500/30 rounded-full blur-3xl animate-pulse" />
-                <div className="relative text-8xl mb-8 animate-bounce">
-                  🧠⚡🌐
-                </div>
-              </div>
-
               <div className="space-y-6">
                 <h3 className="text-4xl font-bold text-[#cd7f32]">
                   Adventure Awaits!
@@ -886,6 +1131,14 @@ pub struct UndeadWarrior {
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
+                      <span className="text-gray-400">Class:</span>
+                      <span className="text-[#cd7f32]">
+                        {selectedClass
+                          ? WARRIOR_CLASS_INFO[selectedClass].title
+                          : "Validator"}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
                       <span className="text-gray-400">DNA:</span>
                       <span className="text-[#cd7f32] font-mono">
                         {warriorDNA}
@@ -898,27 +1151,20 @@ pub struct UndeadWarrior {
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-400">Status:</span>
-                      <span
-                        className={
-                          isConnected && creationSuccess
-                            ? "text-green-400"
-                            : "text-yellow-400"
-                        }
-                      >
-                        {isConnected && creationSuccess
-                          ? "✅ On Blockchain!"
-                          : "💾 Demo Mode"}
-                      </span>
-                    </div>
-                    {user?.google?.email && (
-                      <div className="flex justify-between items-center">
-                        <span className="text-gray-400">Account:</span>
-                        <span className="text-blue-400 text-sm">
-                          {user.google.email}
+                      <span className="text-gray-400">Rarity</span>
+                      {createdWarrior && (
+                        <span
+                          className={
+                            isConnected && creationSuccess
+                              ? "text-green-400"
+                              : "text-yellow-400"
+                          }
+                        >
+                          {createdWarrior?.imageRarity}
                         </span>
-                      </div>
-                    )}
+                      )}
+                    </div>
+
                     {isConnected && walletAddress && (
                       <div className="flex justify-between items-center">
                         <span className="text-gray-400">Wallet:</span>
@@ -930,6 +1176,17 @@ pub struct UndeadWarrior {
                     )}
                   </div>
                 </div>
+
+                {/* Enhanced Warrior Card with Flip Animation */}
+                {createdWarrior && (
+                  <div className="flex justify-center">
+                    <WarriorCard
+                      warrior={createdWarrior}
+                      selectedClass={selectedClass}
+                      warriorName={warriorName}
+                    />
+                  </div>
+                )}
 
                 {isConnected && creationSuccess ? (
                   <div className="bg-green-500/20 border border-green-500/50 rounded-xl p-6 max-w-2xl mx-auto">
@@ -1000,7 +1257,7 @@ pub struct UndeadWarrior {
         </div>
 
         {/* Footer Navigation - Always visible */}
-        {currentStep > 1 && currentStep < 5 && (
+        {currentStep > 1 && currentStep < 6 && (
           <div className="flex justify-between items-center p-6 bg-[#1a1a1a] border-t border-[#cd7f32]/30 flex-shrink-0">
             <button
               onClick={prevStep}
@@ -1021,10 +1278,13 @@ pub struct UndeadWarrior {
               ))}
             </div>
 
-            {currentStep < 4 && (
+            {currentStep < 5 && (
               <button
                 onClick={nextStep}
-                disabled={currentStep === 3 && !selectedPath}
+                disabled={
+                  (currentStep === 3 && !selectedPath) ||
+                  (currentStep === 4 && !selectedClass)
+                }
                 className="flex items-center gap-2 px-4 py-2 text-gray-400 hover:text-[#cd7f32] transition-colors disabled:opacity-50"
               >
                 Next

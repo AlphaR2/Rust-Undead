@@ -1,29 +1,1162 @@
 {
-  "address": "EZcvBzT1Vje7DxU8pi8YRwKsRzBv47v3q5cGmQUpPpNb",
+  "address": "2Nz59jhEqTAA1UAk8QYFEAU87YRm9M9satPYdfJCZkf4",
   "metadata": {
-    "name": "undead",
+    "name": "rust_undead",
     "version": "0.1.0",
-    "spec": "0.1.0",
-    "description": "Created with Anchor"
+    "spec": "0.1.0"
   },
   "instructions": [
     {
-      "name": "battle_warriors",
-      "discriminator": [
-        0,
-        180,
-        21,
-        137,
-        73,
-        157,
-        12,
-        26
-      ],
+      "name": "answer_question",
+      "discriminator": [86, 3, 30, 143, 53, 98, 98, 243],
       "accounts": [
         {
-          "name": "user",
+          "name": "player",
           "writable": true,
           "signer": true
+        },
+        {
+          "name": "battle_room",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [98, 97, 116, 116, 108, 101, 114, 111, 111, 109]
+              },
+              {
+                "kind": "arg",
+                "path": "room_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "attacker_warrior",
+          "writable": true
+        },
+        {
+          "name": "defender_warrior",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "room_id",
+          "type": {
+            "array": ["u8", 32]
+          }
+        },
+        {
+          "name": "answer",
+          "type": "bool"
+        },
+        {
+          "name": "client_seed",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "callback_warrior_stats",
+      "discriminator": [16, 177, 198, 189, 251, 20, 26, 186],
+      "accounts": [
+        {
+          "name": "vrf_program_identity",
+          "docs": [
+            "This check ensure that the vrf_program_identity (which is a PDA) is a singer",
+            "enforcing the callback is executed by the VRF program through CPI"
+          ],
+          "signer": true,
+          "address": "9irBy75QS2BN81FUgXuHcjqceJJRuc9oDkAe8TKVvvAw"
+        },
+        {
+          "name": "warrior",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "randomness",
+          "type": {
+            "array": ["u8", 32]
+          }
+        }
+      ]
+    },
+    {
+      "name": "cancel_battle",
+      "discriminator": [234, 61, 97, 187, 97, 170, 101, 141],
+      "accounts": [
+        {
+          "name": "player",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "battle_room",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [98, 97, 116, 116, 108, 101, 114, 111, 111, 109]
+              },
+              {
+                "kind": "arg",
+                "path": "room_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "warrior_a",
+          "writable": true
+        },
+        {
+          "name": "warrior_b",
+          "writable": true,
+          "optional": true
+        }
+      ],
+      "args": [
+        {
+          "name": "room_id",
+          "type": {
+            "array": ["u8", 32]
+          }
+        }
+      ]
+    },
+    {
+      "name": "cancel_empty_battle_room",
+      "discriminator": [12, 106, 206, 38, 255, 165, 78, 227],
+      "accounts": [
+        {
+          "name": "player",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "battle_room",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [98, 97, 116, 116, 108, 101, 114, 111, 111, 109]
+              },
+              {
+                "kind": "arg",
+                "path": "room_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "warrior_a",
+          "writable": true
+        },
+        {
+          "name": "warrior_b",
+          "writable": true,
+          "optional": true
+        }
+      ],
+      "args": [
+        {
+          "name": "room_id",
+          "type": {
+            "array": ["u8", 32]
+          }
+        }
+      ]
+    },
+    {
+      "name": "create_battle_room",
+      "discriminator": [58, 179, 128, 246, 115, 154, 79, 95],
+      "accounts": [
+        {
+          "name": "player_a",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "warrior_a",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117, 110, 100, 101, 97, 100, 95, 119, 97, 114, 114, 105, 111,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "player_a"
+              },
+              {
+                "kind": "arg",
+                "path": "warrior_name"
+              }
+            ]
+          }
+        },
+        {
+          "name": "battle_room",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [98, 97, 116, 116, 108, 101, 114, 111, 111, 109]
+              },
+              {
+                "kind": "arg",
+                "path": "room_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "room_id",
+          "type": {
+            "array": ["u8", 32]
+          }
+        },
+        {
+          "name": "warrior_name",
+          "type": "string"
+        },
+        {
+          "name": "selected_concepts",
+          "type": {
+            "array": ["u8", 5]
+          }
+        },
+        {
+          "name": "selected_topics",
+          "type": {
+            "array": ["u8", 10]
+          }
+        },
+        {
+          "name": "selected_questions",
+          "type": {
+            "array": ["u16", 10]
+          }
+        },
+        {
+          "name": "correct_answers",
+          "type": {
+            "array": ["bool", 10]
+          }
+        }
+      ]
+    },
+    {
+      "name": "create_warrior",
+      "discriminator": [163, 157, 34, 175, 170, 146, 80, 103],
+      "accounts": [
+        {
+          "name": "player",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "authority",
+          "docs": ["CHECK : The authority for the program"]
+        },
+        {
+          "name": "warrior",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117, 110, 100, 101, 97, 100, 95, 119, 97, 114, 114, 105, 111,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "player"
+              },
+              {
+                "kind": "arg",
+                "path": "name"
+              }
+            ]
+          }
+        },
+        {
+          "name": "user_profile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117, 115, 101, 114, 95, 112, 114, 111, 102, 105, 108, 101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "player"
+              }
+            ]
+          }
+        },
+        {
+          "name": "user_achievements",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117, 115, 101, 114, 95, 97, 99, 104, 105, 101, 118, 101, 109,
+                  101, 110, 116, 115
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "player"
+              }
+            ]
+          }
+        },
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [99, 111, 110, 102, 105, 103]
+              },
+              {
+                "kind": "account",
+                "path": "authority"
+              }
+            ]
+          }
+        },
+        {
+          "name": "oracle_queue",
+          "writable": true,
+          "address": "Cuj97ggrhhidhbu39TijNVqE74xvKJ69gDervRUXAxGh"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "program_identity",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [105, 100, 101, 110, 116, 105, 116, 121]
+              }
+            ]
+          }
+        },
+        {
+          "name": "vrf_program",
+          "address": "Vrf1RNUjXmQGjmQrQLvJHs9SNkvDJEsRVFPkfSQUwGz"
+        },
+        {
+          "name": "slot_hashes",
+          "address": "SysvarS1otHashes111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "dna",
+          "type": {
+            "array": ["u8", 8]
+          }
+        },
+        {
+          "name": "class",
+          "type": {
+            "defined": {
+              "name": "WarriorClass"
+            }
+          }
+        },
+        {
+          "name": "client_seed",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "delegate_battle",
+      "discriminator": [62, 10, 250, 88, 180, 36, 120, 74],
+      "accounts": [
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "buffer_battle_room",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [98, 117, 102, 102, 101, 114]
+              },
+              {
+                "kind": "account",
+                "path": "battle_room"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                20, 125, 106, 57, 101, 230, 53, 252, 121, 13, 102, 205, 238,
+                219, 10, 197, 207, 6, 157, 202, 245, 181, 19, 194, 122, 237, 74,
+                187, 185, 26, 24, 123
+              ]
+            }
+          }
+        },
+        {
+          "name": "delegation_record_battle_room",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [100, 101, 108, 101, 103, 97, 116, 105, 111, 110]
+              },
+              {
+                "kind": "account",
+                "path": "battle_room"
+              }
+            ],
+            "program": {
+              "kind": "account",
+              "path": "delegation_program"
+            }
+          }
+        },
+        {
+          "name": "delegation_metadata_battle_room",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100, 101, 108, 101, 103, 97, 116, 105, 111, 110, 45, 109, 101,
+                  116, 97, 100, 97, 116, 97
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "battle_room"
+              }
+            ],
+            "program": {
+              "kind": "account",
+              "path": "delegation_program"
+            }
+          }
+        },
+        {
+          "name": "battle_room",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [98, 97, 116, 116, 108, 101, 114, 111, 111, 109]
+              },
+              {
+                "kind": "arg",
+                "path": "room_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "buffer_warrior_a",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [98, 117, 102, 102, 101, 114]
+              },
+              {
+                "kind": "account",
+                "path": "warrior_a"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                20, 125, 106, 57, 101, 230, 53, 252, 121, 13, 102, 205, 238,
+                219, 10, 197, 207, 6, 157, 202, 245, 181, 19, 194, 122, 237, 74,
+                187, 185, 26, 24, 123
+              ]
+            }
+          }
+        },
+        {
+          "name": "delegation_record_warrior_a",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [100, 101, 108, 101, 103, 97, 116, 105, 111, 110]
+              },
+              {
+                "kind": "account",
+                "path": "warrior_a"
+              }
+            ],
+            "program": {
+              "kind": "account",
+              "path": "delegation_program"
+            }
+          }
+        },
+        {
+          "name": "delegation_metadata_warrior_a",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100, 101, 108, 101, 103, 97, 116, 105, 111, 110, 45, 109, 101,
+                  116, 97, 100, 97, 116, 97
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "warrior_a"
+              }
+            ],
+            "program": {
+              "kind": "account",
+              "path": "delegation_program"
+            }
+          }
+        },
+        {
+          "name": "warrior_a",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117, 110, 100, 101, 97, 100, 95, 119, 97, 114, 114, 105, 111,
+                  114
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "player_a"
+              },
+              {
+                "kind": "arg",
+                "path": "warrior_a_name"
+              }
+            ]
+          }
+        },
+        {
+          "name": "buffer_warrior_b",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [98, 117, 102, 102, 101, 114]
+              },
+              {
+                "kind": "account",
+                "path": "warrior_b"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                20, 125, 106, 57, 101, 230, 53, 252, 121, 13, 102, 205, 238,
+                219, 10, 197, 207, 6, 157, 202, 245, 181, 19, 194, 122, 237, 74,
+                187, 185, 26, 24, 123
+              ]
+            }
+          }
+        },
+        {
+          "name": "delegation_record_warrior_b",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [100, 101, 108, 101, 103, 97, 116, 105, 111, 110]
+              },
+              {
+                "kind": "account",
+                "path": "warrior_b"
+              }
+            ],
+            "program": {
+              "kind": "account",
+              "path": "delegation_program"
+            }
+          }
+        },
+        {
+          "name": "delegation_metadata_warrior_b",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100, 101, 108, 101, 103, 97, 116, 105, 111, 110, 45, 109, 101,
+                  116, 97, 100, 97, 116, 97
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "warrior_b"
+              }
+            ],
+            "program": {
+              "kind": "account",
+              "path": "delegation_program"
+            }
+          }
+        },
+        {
+          "name": "warrior_b",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117, 110, 100, 101, 97, 100, 95, 119, 97, 114, 114, 105, 111,
+                  114
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "player_b"
+              },
+              {
+                "kind": "arg",
+                "path": "warrior_b_name"
+              }
+            ]
+          }
+        },
+        {
+          "name": "owner_program",
+          "address": "2Nz59jhEqTAA1UAk8QYFEAU87YRm9M9satPYdfJCZkf4"
+        },
+        {
+          "name": "delegation_program",
+          "address": "DELeGGvXpWV2fqJUhqcF5ZSYMS4JTLjteaAMARRSaeSh"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "room_id",
+          "type": {
+            "array": ["u8", 32]
+          }
+        },
+        {
+          "name": "player_a",
+          "type": "pubkey"
+        },
+        {
+          "name": "warrior_a_name",
+          "type": "string"
+        },
+        {
+          "name": "player_b",
+          "type": "pubkey"
+        },
+        {
+          "name": "warrior_b_name",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "emergency_cancel_battle",
+      "discriminator": [11, 10, 74, 199, 28, 62, 29, 164],
+      "accounts": [
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "battle_room",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [98, 97, 116, 116, 108, 101, 114, 111, 111, 109]
+              },
+              {
+                "kind": "arg",
+                "path": "room_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "warrior_a",
+          "writable": true
+        },
+        {
+          "name": "warrior_b",
+          "writable": true
+        },
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [99, 111, 110, 102, 105, 103]
+              }
+            ]
+          }
+        },
+        {
+          "name": "magic_program",
+          "address": "Magic11111111111111111111111111111111111111"
+        },
+        {
+          "name": "magic_context",
+          "writable": true,
+          "address": "MagicContext1111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "room_id",
+          "type": {
+            "array": ["u8", 32]
+          }
+        }
+      ]
+    },
+    {
+      "name": "initialize",
+      "discriminator": [175, 175, 109, 31, 13, 152, 155, 237],
+      "accounts": [
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [99, 111, 110, 102, 105, 103]
+              },
+              {
+                "kind": "account",
+                "path": "authority"
+              }
+            ]
+          }
+        },
+        {
+          "name": "leaderboard",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [108, 101, 97, 100, 101, 114, 98, 111, 97, 114, 100]
+              },
+              {
+                "kind": "account",
+                "path": "authority"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "cooldown_time",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "join_battle_room",
+      "discriminator": [96, 155, 69, 190, 105, 208, 17, 32],
+      "accounts": [
+        {
+          "name": "player_b",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "warrior_b",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117, 110, 100, 101, 97, 100, 95, 119, 97, 114, 114, 105, 111,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "player_b"
+              },
+              {
+                "kind": "arg",
+                "path": "warrior_name"
+              }
+            ]
+          }
+        },
+        {
+          "name": "battle_room",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [98, 97, 116, 116, 108, 101, 114, 111, 111, 109]
+              },
+              {
+                "kind": "arg",
+                "path": "room_id"
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "room_id",
+          "type": {
+            "array": ["u8", 32]
+          }
+        },
+        {
+          "name": "warrior_name",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "process_undelegation",
+      "discriminator": [196, 28, 41, 206, 48, 37, 51, 167],
+      "accounts": [
+        {
+          "name": "base_account",
+          "writable": true
+        },
+        {
+          "name": "buffer"
+        },
+        {
+          "name": "payer",
+          "writable": true
+        },
+        {
+          "name": "system_program"
+        }
+      ],
+      "args": [
+        {
+          "name": "account_seeds",
+          "type": {
+            "vec": "bytes"
+          }
+        }
+      ]
+    },
+    {
+      "name": "settle_battle_room",
+      "discriminator": [254, 23, 210, 244, 99, 15, 11, 61],
+      "accounts": [
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "battle_room",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [98, 97, 116, 116, 108, 101, 114, 111, 111, 109]
+              },
+              {
+                "kind": "arg",
+                "path": "room_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "warrior_a",
+          "writable": true
+        },
+        {
+          "name": "warrior_b",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "room_id",
+          "type": {
+            "array": ["u8", 32]
+          }
+        }
+      ]
+    },
+    {
+      "name": "signal_ready",
+      "discriminator": [96, 49, 44, 123, 65, 227, 168, 32],
+      "accounts": [
+        {
+          "name": "player",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "battle_room",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [98, 97, 116, 116, 108, 101, 114, 111, 111, 109]
+              },
+              {
+                "kind": "arg",
+                "path": "room_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "warrior",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117, 110, 100, 101, 97, 100, 95, 119, 97, 114, 114, 105, 111,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "player"
+              },
+              {
+                "kind": "arg",
+                "path": "warrior_name"
+              }
+            ]
+          }
+        },
+        {
+          "name": "warrior_a",
+          "writable": true
+        },
+        {
+          "name": "warrior_b",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "room_id",
+          "type": {
+            "array": ["u8", 32]
+          }
+        },
+        {
+          "name": "warrior_name",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "start_battle",
+      "discriminator": [87, 12, 31, 196, 33, 191, 140, 147],
+      "accounts": [
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "battle_room",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [98, 97, 116, 116, 108, 101, 114, 111, 111, 109]
+              },
+              {
+                "kind": "arg",
+                "path": "room_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "warrior_a",
+          "writable": true
+        },
+        {
+          "name": "warrior_b",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "room_id",
+          "type": {
+            "array": ["u8", 32]
+          }
+        }
+      ]
+    },
+    {
+      "name": "undelegate_battle_room",
+      "discriminator": [221, 93, 230, 24, 192, 98, 219, 26],
+      "accounts": [
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "battle_room",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [98, 97, 116, 116, 108, 101, 114, 111, 111, 109]
+              },
+              {
+                "kind": "arg",
+                "path": "room_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "warrior_a",
+          "writable": true
+        },
+        {
+          "name": "warrior_b",
+          "writable": true
+        },
+        {
+          "name": "magic_program",
+          "address": "Magic11111111111111111111111111111111111111"
+        },
+        {
+          "name": "magic_context",
+          "writable": true,
+          "address": "MagicContext1111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "room_id",
+          "type": {
+            "array": ["u8", 32]
+          }
+        }
+      ]
+    },
+    {
+      "name": "update_final_state",
+      "discriminator": [59, 58, 77, 84, 97, 73, 221, 76],
+      "accounts": [
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "authority"
+        },
+        {
+          "name": "battle_room",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [98, 97, 116, 116, 108, 101, 114, 111, 111, 109]
+              },
+              {
+                "kind": "arg",
+                "path": "room_id"
+              }
+            ]
+          }
         },
         {
           "name": "warrior_a",
@@ -41,13 +1174,7 @@
               {
                 "kind": "const",
                 "value": [
-                  112,
-                  114,
-                  111,
-                  102,
-                  105,
-                  108,
-                  101
+                  117, 115, 101, 114, 95, 112, 114, 111, 102, 105, 108, 101
                 ]
               },
               {
@@ -66,13 +1193,47 @@
               {
                 "kind": "const",
                 "value": [
-                  112,
-                  114,
-                  111,
-                  102,
-                  105,
-                  108,
-                  101
+                  117, 115, 101, 114, 95, 112, 114, 111, 102, 105, 108, 101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "warrior_b.owner",
+                "account": "UndeadWarrior"
+              }
+            ]
+          }
+        },
+        {
+          "name": "achievements_a",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117, 115, 101, 114, 95, 97, 99, 104, 105, 101, 118, 101, 109,
+                  101, 110, 116, 115
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "warrior_a.owner",
+                "account": "UndeadWarrior"
+              }
+            ]
+          }
+        },
+        {
+          "name": "achievements_b",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117, 115, 101, 114, 95, 97, 99, 104, 105, 101, 118, 101, 109,
+                  101, 110, 116, 115
                 ]
               },
               {
@@ -90,376 +1251,273 @@
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              }
-            ]
-          }
-        }
-      ],
-      "args": []
-    },
-    {
-      "name": "create_warrior",
-      "discriminator": [
-        163,
-        157,
-        34,
-        175,
-        170,
-        146,
-        80,
-        103
-      ],
-      "accounts": [
-        {
-          "name": "user",
-          "writable": true,
-          "signer": true
-        },
-        {
-          "name": "warrior",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  119,
-                  97,
-                  114,
-                  114,
-                  105,
-                  111,
-                  114
-                ]
+                "value": [99, 111, 110, 102, 105, 103]
               },
               {
                 "kind": "account",
-                "path": "user"
-              },
-              {
-                "kind": "arg",
-                "path": "name"
+                "path": "authority"
               }
             ]
           }
         },
         {
-          "name": "user_profile",
+          "name": "leaderboard",
           "writable": true,
           "pda": {
             "seeds": [
               {
                 "kind": "const",
-                "value": [
-                  112,
-                  114,
-                  111,
-                  102,
-                  105,
-                  108,
-                  101
-                ]
+                "value": [108, 101, 97, 100, 101, 114, 98, 111, 97, 114, 100]
               },
               {
                 "kind": "account",
-                "path": "user"
+                "path": "authority"
               }
             ]
           }
-        },
-        {
-          "name": "config",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "name": "system_program",
-          "address": "11111111111111111111111111111111"
         }
       ],
       "args": [
         {
-          "name": "name",
-          "type": "string"
-        },
-        {
-          "name": "dna",
-          "type": "string"
+          "name": "room_id",
+          "type": {
+            "array": ["u8", 32]
+          }
         }
       ]
-    },
-    {
-      "name": "initialize",
-      "discriminator": [
-        175,
-        175,
-        109,
-        31,
-        13,
-        152,
-        155,
-        237
-      ],
-      "accounts": [
-        {
-          "name": "authority",
-          "writable": true,
-          "signer": true
-        },
-        {
-          "name": "config",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "name": "system_program",
-          "address": "11111111111111111111111111111111"
-        }
-      ],
-      "args": [
-        {
-          "name": "admin",
-          "type": "pubkey"
-        }
-      ]
-    },
-    {
-      "name": "pause_game",
-      "discriminator": [
-        133,
-        116,
-        165,
-        66,
-        173,
-        81,
-        10,
-        85
-      ],
-      "accounts": [
-        {
-          "name": "config",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "name": "admin",
-          "signer": true
-        }
-      ],
-      "args": [
-        {
-          "name": "paused",
-          "type": "bool"
-        }
-      ]
-    },
-    {
-      "name": "update_achievements",
-      "discriminator": [
-        218,
-        177,
-        159,
-        24,
-        144,
-        26,
-        79,
-        60
-      ],
-      "accounts": [
-        {
-          "name": "user",
-          "writable": true,
-          "signer": true
-        },
-        {
-          "name": "achievements",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  97,
-                  99,
-                  104,
-                  105,
-                  101,
-                  118,
-                  101,
-                  109,
-                  101,
-                  110,
-                  116,
-                  115
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "user"
-              }
-            ]
-          }
-        },
-        {
-          "name": "user_profile",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  112,
-                  114,
-                  111,
-                  102,
-                  105,
-                  108,
-                  101
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "user"
-              }
-            ]
-          }
-        },
-        {
-          "name": "system_program",
-          "address": "11111111111111111111111111111111"
-        }
-      ],
-      "args": []
     }
   ],
   "accounts": [
     {
-      "name": "GameConfig",
-      "discriminator": [
-        45,
-        146,
-        146,
-        33,
-        170,
-        69,
-        96,
-        133
-      ]
+      "name": "BattleRoom",
+      "discriminator": [51, 147, 104, 79, 145, 40, 116, 24]
+    },
+    {
+      "name": "Config",
+      "discriminator": [155, 12, 170, 224, 30, 250, 204, 130]
+    },
+    {
+      "name": "Leaderboard",
+      "discriminator": [247, 186, 238, 243, 194, 30, 9, 36]
     },
     {
       "name": "UndeadWarrior",
-      "discriminator": [
-        221,
-        104,
-        254,
-        146,
-        1,
-        24,
-        0,
-        118
-      ]
+      "discriminator": [221, 104, 254, 146, 1, 24, 0, 118]
     },
     {
       "name": "UserAchievements",
-      "discriminator": [
-        113,
-        223,
-        157,
-        75,
-        204,
-        112,
-        2,
-        207
-      ]
+      "discriminator": [113, 223, 157, 75, 204, 112, 2, 207]
     },
     {
       "name": "UserProfile",
-      "discriminator": [
-        32,
-        37,
-        119,
-        205,
-        179,
-        180,
-        13,
-        194
-      ]
+      "discriminator": [32, 37, 119, 205, 179, 180, 13, 194]
     }
   ],
   "errors": [
     {
       "code": 6000,
-      "name": "InvalidName",
-      "msg": "Invalid warrior name"
+      "name": "InvalidWarriorState",
+      "msg": "Warrior is not in the correct state for this action"
     },
     {
       "code": 6001,
-      "name": "InvalidDna",
-      "msg": "DNA must be exactly 8 characters"
+      "name": "NotWarriorOwner",
+      "msg": "Only the warrior owner can perform this action"
     },
     {
       "code": 6002,
-      "name": "GamePaused",
-      "msg": "Game is currently paused"
+      "name": "WarriorNameTooLong",
+      "msg": "Warrior name exceeds maximum length"
     },
     {
       "code": 6003,
-      "name": "SameWarriorBattle",
-      "msg": "Cannot battle with the same warrior"
+      "name": "WarriorAlreadyInBattle",
+      "msg": "Warrior is already in a battle"
     },
     {
       "code": 6004,
-      "name": "Unauthorized",
-      "msg": "Unauthorized: Only admin can perform this action"
+      "name": "WarriorAlreadyExists",
+      "msg": "Warrior Name already exists"
+    },
+    {
+      "code": 6005,
+      "name": "WarriorOnCooldown",
+      "msg": "Warrior On Cooldown"
+    },
+    {
+      "code": 6006,
+      "name": "InvalidBattleState",
+      "msg": "Battle room is not in the correct state for this action"
+    },
+    {
+      "code": 6007,
+      "name": "BattleRoomFull",
+      "msg": "Battle room already has two players"
+    },
+    {
+      "code": 6008,
+      "name": "NotBattleParticipant",
+      "msg": "Only battle participants can perform this action"
+    },
+    {
+      "code": 6009,
+      "name": "PlayerNotReady",
+      "msg": "Player has not marked themselves as ready"
+    },
+    {
+      "code": 6010,
+      "name": "BattleAlreadySettled",
+      "msg": "Battle results have already been settled"
+    },
+    {
+      "code": 6011,
+      "name": "InvalidRoomId",
+      "msg": "Room ID is invalid or too long"
+    },
+    {
+      "code": 6012,
+      "name": "VrfRequestPending",
+      "msg": "VRF request is still pending"
+    },
+    {
+      "code": 6013,
+      "name": "InvalidVrfResult",
+      "msg": "Invalid VRF result received"
+    },
+    {
+      "code": 6014,
+      "name": "VrfRequestNotFound",
+      "msg": "VRF request not found or expired"
+    },
+    {
+      "code": 6015,
+      "name": "NotAuthorized",
+      "msg": "Not authorized to perform this action"
+    },
+    {
+      "code": 6016,
+      "name": "InvalidSettlementAuthority",
+      "msg": "Invalid settlement authority"
+    },
+    {
+      "code": 6017,
+      "name": "InsufficientFunds",
+      "msg": "Insufficient funds for this operation"
+    },
+    {
+      "code": 6018,
+      "name": "InvalidConceptSelection",
+      "msg": "Invalid concept selection"
+    },
+    {
+      "code": 6019,
+      "name": "GameNotInitialized",
+      "msg": "Game state has not been initialized"
+    },
+    {
+      "code": 6020,
+      "name": "InvalidErSessionId",
+      "msg": "Invalid ephemeral rollup session ID"
+    },
+    {
+      "code": 6021,
+      "name": "PlayerNotInRoom",
+      "msg": "Player not in room"
+    },
+    {
+      "code": 6022,
+      "name": "AlreadyReady",
+      "msg": "Player is ready"
+    },
+    {
+      "code": 6023,
+      "name": "InvalidWarrior",
+      "msg": "Invalid Warrior"
+    },
+    {
+      "code": 6024,
+      "name": "SameWarriorCannotBattle",
+      "msg": "Same Warrior cannot Battle"
+    },
+    {
+      "code": 6025,
+      "name": "WarriorDefeated",
+      "msg": "Warrior defeated"
+    },
+    {
+      "code": 6026,
+      "name": "AlreadyAnswered",
+      "msg": "Player has already answered this question"
+    },
+    {
+      "code": 6027,
+      "name": "AllQuestionsAnswered",
+      "msg": "All Questions answered"
+    },
+    {
+      "code": 6028,
+      "name": "NameTooLong",
+      "msg": "Name is too long, consider reducing it"
+    },
+    {
+      "code": 6029,
+      "name": "NameEmpty",
+      "msg": "Invalid, please input name"
+    },
+    {
+      "code": 6030,
+      "name": "CannotAttackSelf",
+      "msg": "Warrior cannot attack itself"
+    },
+    {
+      "code": 6031,
+      "name": "InvalidQuestionIndex",
+      "msg": "Invalid Question Index"
+    },
+    {
+      "code": 6032,
+      "name": "OnlyCreatorCanCancel",
+      "msg": "Only the room creator can cancel the battle"
+    },
+    {
+      "code": 6033,
+      "name": "BattleAlreadyStarted",
+      "msg": "Battle has already started and cannot be cancelled"
+    },
+    {
+      "code": 6034,
+      "name": "BattleAlreadyCompleted",
+      "msg": "Battle has already been completed"
+    },
+    {
+      "code": 6035,
+      "name": "BattleAlreadyCancelled",
+      "msg": "Battle room has already been cancelled"
+    },
+    {
+      "code": 6036,
+      "name": "CannotCancelAtThisStage",
+      "msg": "Cannot cancel battle at this stage"
+    },
+    {
+      "code": 6037,
+      "name": "CannotUndelegate",
+      "msg": "Game not ready for Undelegation"
+    },
+    {
+      "code": 6038,
+      "name": "InvalidImageIndex",
+      "msg": "Invalid image index for the selected rarity"
+    },
+    {
+      "code": 6039,
+      "name": "InvalidClassRarity",
+      "msg": "Invalid warrior class and rarity combination"
+    },
+    {
+      "code": 6040,
+      "name": "ImageGenerationFailed",
+      "msg": "Image generation failed"
     }
   ],
   "types": [
@@ -490,7 +1548,166 @@
       }
     },
     {
-      "name": "GameConfig",
+      "name": "BattleRoom",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "room_id",
+            "type": {
+              "array": ["u8", 32]
+            }
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          },
+          {
+            "name": "player_a",
+            "type": "pubkey"
+          },
+          {
+            "name": "player_b",
+            "type": {
+              "option": "pubkey"
+            }
+          },
+          {
+            "name": "warrior_a",
+            "type": "pubkey"
+          },
+          {
+            "name": "warrior_b",
+            "type": {
+              "option": "pubkey"
+            }
+          },
+          {
+            "name": "selected_concepts",
+            "type": {
+              "array": ["u8", 5]
+            }
+          },
+          {
+            "name": "selected_topics",
+            "type": {
+              "array": ["u8", 10]
+            }
+          },
+          {
+            "name": "selected_questions",
+            "type": {
+              "array": ["u16", 10]
+            }
+          },
+          {
+            "name": "correct_answers",
+            "type": {
+              "array": ["bool", 10]
+            }
+          },
+          {
+            "name": "state",
+            "type": {
+              "defined": {
+                "name": "BattleState"
+              }
+            }
+          },
+          {
+            "name": "player_a_ready",
+            "type": "bool"
+          },
+          {
+            "name": "player_b_ready",
+            "type": "bool"
+          },
+          {
+            "name": "current_question",
+            "type": "u8"
+          },
+          {
+            "name": "player_a_answers",
+            "type": {
+              "array": [
+                {
+                  "option": "bool"
+                },
+                10
+              ]
+            }
+          },
+          {
+            "name": "player_b_answers",
+            "type": {
+              "array": [
+                {
+                  "option": "bool"
+                },
+                10
+              ]
+            }
+          },
+          {
+            "name": "player_a_correct",
+            "type": "u8"
+          },
+          {
+            "name": "player_b_correct",
+            "type": "u8"
+          },
+          {
+            "name": "winner",
+            "type": {
+              "option": "pubkey"
+            }
+          },
+          {
+            "name": "battle_duration",
+            "type": "u32"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "battle_start_time",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "BattleState",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Created"
+          },
+          {
+            "name": "Joined"
+          },
+          {
+            "name": "QuestionsSelected"
+          },
+          {
+            "name": "ReadyForDelegation"
+          },
+          {
+            "name": "InProgress"
+          },
+          {
+            "name": "Completed"
+          },
+          {
+            "name": "Cancelled"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Config",
       "type": {
         "kind": "struct",
         "fields": [
@@ -499,20 +1716,73 @@
             "type": "pubkey"
           },
           {
-            "name": "total_warriors_created",
-            "type": "u32"
+            "name": "total_warriors",
+            "type": "u64"
           },
           {
-            "name": "total_battles_fought",
-            "type": "u32"
+            "name": "cooldown_time",
+            "type": "u64"
           },
           {
-            "name": "initialized_at",
-            "type": "i64"
+            "name": "total_battles",
+            "type": "u32"
           },
           {
             "name": "is_paused",
             "type": "bool"
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ImageRarity",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Common"
+          },
+          {
+            "name": "Uncommon"
+          },
+          {
+            "name": "Rare"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Leaderboard",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "top_players",
+            "type": {
+              "array": ["pubkey", 20]
+            }
+          },
+          {
+            "name": "top_scores",
+            "type": {
+              "array": ["u32", 20]
+            }
+          },
+          {
+            "name": "last_updated",
+            "type": "i64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
           }
         ]
       }
@@ -527,32 +1797,94 @@
             "type": "string"
           },
           {
-            "name": "dna",
-            "type": "string"
+            "name": "address",
+            "type": "pubkey"
           },
           {
             "name": "owner",
             "type": "pubkey"
           },
           {
-            "name": "power_level",
-            "type": "u32"
+            "name": "dna",
+            "type": {
+              "array": ["u8", 8]
+            }
           },
           {
             "name": "created_at",
             "type": "i64"
           },
           {
-            "name": "battle_wins",
+            "name": "base_attack",
+            "type": "u16"
+          },
+          {
+            "name": "base_defense",
+            "type": "u16"
+          },
+          {
+            "name": "base_knowledge",
+            "type": "u16"
+          },
+          {
+            "name": "current_hp",
+            "type": "u16"
+          },
+          {
+            "name": "max_hp",
+            "type": "u16"
+          },
+          {
+            "name": "warrior_class",
+            "type": {
+              "defined": {
+                "name": "WarriorClass"
+              }
+            }
+          },
+          {
+            "name": "battles_won",
             "type": "u32"
           },
           {
-            "name": "battles_fought",
+            "name": "battles_lost",
             "type": "u32"
           },
           {
             "name": "experience_points",
             "type": "u64"
+          },
+          {
+            "name": "level",
+            "type": "u16"
+          },
+          {
+            "name": "last_battle_at",
+            "type": "i64"
+          },
+          {
+            "name": "cooldown_expires_at",
+            "type": "i64"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "image_rarity",
+            "type": {
+              "defined": {
+                "name": "ImageRarity"
+              }
+            }
+          },
+          {
+            "name": "image_index",
+            "type": "u8"
+          },
+          {
+            "name": "image_uri",
+            "type": "string"
           }
         ]
       }
@@ -567,7 +1899,7 @@
             "type": "pubkey"
           },
           {
-            "name": "warrior_creator",
+            "name": "overall_achievements",
             "type": {
               "defined": {
                 "name": "AchievementLevel"
@@ -575,7 +1907,7 @@
             }
           },
           {
-            "name": "battle_winner",
+            "name": "warrior_achivement",
             "type": {
               "defined": {
                 "name": "AchievementLevel"
@@ -583,7 +1915,15 @@
             }
           },
           {
-            "name": "battle_fighter",
+            "name": "winner_achievement",
+            "type": {
+              "defined": {
+                "name": "AchievementLevel"
+              }
+            }
+          },
+          {
+            "name": "battle_achievement",
             "type": {
               "defined": {
                 "name": "AchievementLevel"
@@ -595,12 +1935,8 @@
             "type": "i64"
           },
           {
-            "name": "first_victory_date",
-            "type": "i64"
-          },
-          {
-            "name": "total_score",
-            "type": "u64"
+            "name": "bump",
+            "type": "u8"
           }
         ]
       }
@@ -623,12 +1959,44 @@
             "type": "u32"
           },
           {
+            "name": "total_battles_lost",
+            "type": "u32"
+          },
+          {
             "name": "total_battles_fought",
             "type": "u32"
           },
           {
             "name": "join_date",
             "type": "i64"
+          },
+          {
+            "name": "total_points",
+            "type": "u32"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "WarriorClass",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Validator"
+          },
+          {
+            "name": "Oracle"
+          },
+          {
+            "name": "Guardian"
+          },
+          {
+            "name": "Daemon"
           }
         ]
       }

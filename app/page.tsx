@@ -36,6 +36,7 @@ import OnboardingModal from "./components/modal/Onboarding";
 import Notification from "./components/Notification";
 import { AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import { useLogin } from "@privy-io/react-auth";
 
 // Types
 interface Stat {
@@ -269,14 +270,52 @@ const Home: React.FC = () => {
     }
   }, [success]);
 
+  const { login: privyLogin } = useLogin({
+    onComplete: ({ user, isNewUser }) => {
+      console.log("🔑 ✅ Login success", {
+        user,
+        isNewUser,
+      });
+
+      // CRITICAL: Close connection modal immediately on success
+      setShowConnectionOptions(false);
+
+      // Clear any existing errors
+      setError(null);
+
+      // Add success message with delay to ensure modal closes first
+      setTimeout(() => {
+        setSuccess({
+          message: "Successfully signed in with Privy!",
+          type: "general",
+        });
+      }, 300); // Increased delay to ensure modal fully closes
+    },
+    onError: (error) => {
+      console.log("🔑 🚨 Login error", { error });
+
+      // Close modal on error too
+      setShowConnectionOptions(false);
+
+      // Show error after modal closes
+      setTimeout(() => {
+        setError({
+          message: "Failed to sign in with Privy. Please try again.",
+          type: "login",
+        });
+      }, 100);
+    },
+  });
+
   const handlePrivyLogin = async () => {
     try {
       setError(null);
       setSuccess(null);
-      login();
-      setShowConnectionOptions(false);
+      // Start the login process
+      privyLogin();
     } catch (err) {
       console.error("Privy login failed:", err);
+      setShowConnectionOptions(false);
       setError({
         message: "Failed to sign in with Privy. Please try again.",
         type: "login",
@@ -435,6 +474,7 @@ const Home: React.FC = () => {
             {/* Privy Option */}
             <button
               onClick={handlePrivyLogin}
+              disabled = {!gameReady}
               className="w-full p-4 bg-[#1a1a1a] hover:bg-[#cd7f32]/10 border border-[#cd7f32]/20 hover:border-[#cd7f32]/40 rounded-lg transition-all duration-200 text-left group"
             >
               <div className="flex items-center gap-4">

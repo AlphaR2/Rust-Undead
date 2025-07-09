@@ -6,28 +6,20 @@ import DashboardPage from "./dashboard/page";
 import Warriors from "./warriors/page";
 import Achievements from "./achievements/page";
 import WelcomeModal from "../components/modal/WelcomeModal";
-import { useTour } from "../components/modal/WelcomeModal";
 import { Warrior } from "@/types/undead";
+import { useCurrentWallet } from "@/hooks/useUndeadProgram";
 
 const HeadQuarters: React.FC = () => {
   const { isConnected, userWarriors } = useGameData();
+  const { address: walletAddress } = useCurrentWallet();
 
   // Use the navigation context from layout
   const { activeSection, setActiveSection } = useNavigation();
 
-  // Tour management
-  const {
-    showWelcome: internalShowWelcome,
-    showTour,
-    handleCloseWelcome,
-    handleStartTour,
-    handleCloseTour,
-    handleCompleteTour,
-  } = useTour();
-
   // Local state
   const [selectedWarrior, setSelectedWarrior] = useState<Warrior | null>(null);
   const [showWelcome, setShowWelcome] = useState<boolean>(false);
+  const [showTour, setShowTour] = useState<boolean>(false);
 
   // Handle navigation between sections
   const handleNavigation = (sectionId: string) => {
@@ -43,19 +35,73 @@ const HeadQuarters: React.FC = () => {
 
   // Handle welcome modal close
   const handleWelcomeClose = () => {
-    handleCloseWelcome();
     setShowWelcome(false);
+    // Mark this wallet as having seen the welcome
+    if (walletAddress) {
+      localStorage.setItem(`rust_undead_welcomed_${walletAddress}`, "true");
+    }
   };
 
-  // Auto-show welcome for new users
-  useEffect(() => {
-    if (isConnected && userWarriors.length === 0 && !showWelcome) {
-      setShowWelcome(true);
+  // Handle tour start
+  const handleStartTour = () => {
+    setShowWelcome(false);
+    setShowTour(true);
+    // Mark this wallet as having seen the welcome
+    if (walletAddress) {
+      localStorage.setItem(`rust_undead_welcomed_${walletAddress}`, "true");
     }
-  }, [isConnected, userWarriors.length, showWelcome]);
+  };
 
-  // Determine which welcome state to use
-  const shouldShowWelcome = showWelcome || internalShowWelcome;
+  // Handle tour close
+  const handleCloseTour = () => {
+    setShowTour(false);
+    // Mark this wallet as having completed the tour
+    if (walletAddress) {
+      localStorage.setItem(
+        `rust_undead_tour_completed_${walletAddress}`,
+        "true"
+      );
+    }
+  };
+
+  // Handle tour completion
+  const handleCompleteTour = () => {
+    setShowTour(false);
+    // Mark this wallet as having completed the tour
+    if (walletAddress) {
+      localStorage.setItem(
+        `rust_undead_tour_completed_${walletAddress}`,
+        "true"
+      );
+    }
+  };
+
+  // Check if user should see welcome/tour modals
+  useEffect(() => {
+    if (isConnected && walletAddress) {
+      const hasSeenWelcome = localStorage.getItem(
+        `rust_undead_welcomed_${walletAddress}`
+      );
+      const hasCompletedTour = localStorage.getItem(
+        `rust_undead_tour_completed_${walletAddress}`
+      );
+
+      // Show welcome modal only if:
+      // 1. User has no warriors (first time)
+      // 2. Haven't seen welcome before for this wallet
+      if (userWarriors.length === 0 && !hasSeenWelcome) {
+        setShowWelcome(true);
+      }
+    }
+  }, [isConnected, walletAddress, userWarriors.length]);
+
+  // Clear modals when wallet disconnects
+  useEffect(() => {
+    if (!isConnected) {
+      setShowWelcome(false);
+      setShowTour(false);
+    }
+  }, [isConnected]);
 
   // Render main content based on active section
   const renderMainContent = () => {
@@ -218,9 +264,9 @@ const HeadQuarters: React.FC = () => {
   return (
     <>
       {/* Welcome Modal */}
-      {shouldShowWelcome && (
+      {showWelcome && (
         <WelcomeModal
-          isOpen={shouldShowWelcome}
+          isOpen={showWelcome}
           onClose={handleWelcomeClose}
           onStartTour={handleStartTour}
         />
