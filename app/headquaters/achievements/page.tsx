@@ -148,10 +148,6 @@ const Achievements = () => {
       (sum, w) => sum + w.experiencePoints,
       0
     );
-    const strongestWarrior = Math.max(
-      ...userWarriors.map((w) => w.powerLevel),
-      0
-    );
 
     const achievementList: Achievement[] = [
       // Warrior Achievements
@@ -256,42 +252,7 @@ const Achievements = () => {
       },
 
       // Power & Collection Achievements
-      {
-        id: "power_seeker",
-        title: "Power Seeker",
-        description: "Reach power level 5 with any warrior",
-        icon: "⚡",
-        category: "collection",
-        tier: "bronze",
-        requirement: 5,
-        currentProgress: strongestWarrior,
-        unlocked: strongestWarrior >= 5,
-        reward: { type: "experience", value: 200 },
-      },
-      {
-        id: "elite_warrior",
-        title: "Elite Warrior",
-        description: "Reach power level 10 with any warrior",
-        icon: "⭐",
-        category: "collection",
-        tier: "silver",
-        requirement: 10,
-        currentProgress: strongestWarrior,
-        unlocked: strongestWarrior >= 10,
-        reward: { type: "title", value: "Elite Trainer" },
-      },
-      {
-        id: "legendary_power",
-        title: "Legendary Power",
-        description: "Reach power level 20 with any warrior",
-        icon: "💎",
-        category: "collection",
-        tier: "gold",
-        requirement: 20,
-        currentProgress: strongestWarrior,
-        unlocked: strongestWarrior >= 20,
-        reward: { type: "title", value: "Legendary Master" },
-      },
+
       {
         id: "experience_master",
         title: "Experience Master",
