@@ -1,37 +1,36 @@
-import React, { useState, useEffect } from "react";
 import {
-  X,
-  Zap,
-  ChevronRight,
-  Volume2,
-  VolumeX,
-  Loader2,
-  Globe,
-  Brain,
-  Target,
-  Crown,
-  AlertCircle,
-  CheckCircle,
-  Dice6,
-  Sparkles,
-} from "lucide-react";
+    VRFStage,
+    WARRIOR_CLASS_INFO,
+    WarriorCreationResult,
+    createWarriorWithVRF,
+    generateRandomDNA,
+} from "@/hooks/useGameActions";
+import {
+    useCurrentWallet,
+    usePDAs,
+    useUndeadProgram,
+    useWalletInfo,
+} from "@/hooks/useUndeadProgram";
+import { Warrior, WarriorClass } from "@/types/undead";
 import { usePrivy } from "@privy-io/react-auth";
 import {
-  useUndeadProgram,
-  usePDAs,
-  useWalletInfo,
-  useCurrentWallet,
-} from "@/hooks/useUndeadProgram";
-import {
-  createWarriorWithVRF,
-  generateRandomDNA,
-  WARRIOR_CLASS_INFO,
-  VRFStage,
-  WarriorCreationResult,
-} from "@/hooks/useGameActions";
-import { Warrior, WarriorClass } from "@/types/undead";
+    AlertCircle,
+    Brain,
+    CheckCircle,
+    ChevronRight,
+    Crown,
+    Dice6,
+    Globe,
+    Loader2,
+    Sparkles,
+    Target,
+    Volume2,
+    VolumeX,
+    X,
+    Zap,
+} from "lucide-react";
+import React, { useEffect, useState } from "react";
 import WarriorCard from "../Card";
-import { PublicKey } from "@solana/web3.js";
 
 interface OnboardingModalProps {
   isOpen: boolean;

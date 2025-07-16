@@ -156,6 +156,7 @@ const DashboardPage = () => {
         // handleNavigate("battle");
       },
       icon: Shield,
+      
     },
     {
       id: "achievements",

@@ -37,6 +37,7 @@ interface NavigationItem {
   label: string;
   icon: React.ComponentType<any>;
   comingSoon?: boolean;
+  path: string
 }
 
 interface NotificationState {
@@ -117,12 +118,44 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   });
 
   const navigationItems: NavigationItem[] = [
-    { id: "dashboard", label: "Dashboard", icon: Home },
-    { id: "warriors", label: "My Warriors", icon: Sword },
-    { id: "achievements", label: "Achievements", icon: Trophy },
-    { id: "battle", label: "Battle Arena", icon: Shield, comingSoon: true },
-    { id: "academy", label: "Rust Academy", icon: BookOpen, comingSoon: true },
-    { id: "forge", label: "Solana Forge", icon: Link, comingSoon: true },
+    {
+      id: "dashboard",
+      label: "Dashboard",
+      icon: Home,
+      path: "/headquarters/dashboard",
+    },
+    {
+      id: "warriors",
+      label: "My Warriors",
+      icon: Sword,
+      path: "/headquarters/warriors",
+    },
+    {
+      id: "achievements",
+      label: "Achievements",
+      icon: Trophy,
+      path: "/headquarters/achievements",
+    },
+    {
+      id: "battle",
+      label: "Battle Arena",
+      icon: Shield,
+      path: "/headquarters/battle-arena",
+    },
+    {
+      id: "academy",
+      label: "Rust Academy",
+      icon: BookOpen,
+      comingSoon: true,
+      path: "/headquarters/academy",
+    },
+    {
+      id: "forge",
+      label: "Solana Forge",
+      icon: Link,
+      comingSoon: true,
+      path: "/headquarters/forge",
+    },
   ];
 
   // Check if user is authenticated via either method
@@ -268,7 +301,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
     }
   };
 
-  const handleNavigation = (sectionId: string) => {
+  const handleNavigation = (sectionId: string, path: string) => {
     console.log(`Navigating to section: ${sectionId}`);
 
     const navItem = navigationItems.find((item) => item.id === sectionId);
@@ -280,7 +313,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       });
       return;
     }
-
+    router.push(path);
     setActiveSection(sectionId);
     playSound("click");
 
@@ -660,7 +693,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
               {navigationItems.map((item) => (
                 <button
                   key={item.id}
-                  onClick={() => handleNavigation(item.id)}
+                  onClick={() => handleNavigation(item.id, item.path)}
                   onMouseEnter={() => playSound("hover")}
                   disabled={item.comingSoon}
                   className={`w-full flex items-center gap-3 transition-all duration-200 relative group ${

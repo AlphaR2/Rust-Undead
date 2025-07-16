@@ -365,7 +365,7 @@ const Home: React.FC = () => {
 
   // Navigate to dashboard
   const handleGoToDashboard = (): void => {
-    router.push("/headquaters");
+    router.push("/headquarters/dashboard");
   };
 
   const handleOnboardingComplete = async (data?: {

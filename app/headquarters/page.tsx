@@ -3,13 +3,16 @@ import React, { useState, useEffect } from "react";
 import { useGameData } from "@/hooks/useGameData";
 import { useNavigation } from "./layout";
 import DashboardPage from "./dashboard/page";
+import BattleArena from "./battle-arena/page";
 import Warriors from "./warriors/page";
 import Achievements from "./achievements/page";
 import WelcomeModal from "../components/modal/WelcomeModal";
 import { Warrior } from "@/types/undead";
 import { useCurrentWallet } from "@/hooks/useUndeadProgram";
+import { useRouter } from "next/navigation";
 
 const HeadQuarters: React.FC = () => {
+  const router = useRouter();
   const { isConnected, userWarriors } = useGameData();
   const { address: walletAddress } = useCurrentWallet();
 
@@ -107,59 +110,60 @@ const HeadQuarters: React.FC = () => {
   const renderMainContent = () => {
     switch (activeSection) {
       case "dashboard":
-        return <DashboardPage />;
+        return router.push("/headquarters/dashboard");
       case "warriors":
-        return <Warriors />;
+        return router.push("/headquarters/warriors");
       case "achievements":
-        return <Achievements />;
+        return router.push("/headquarters/achievements");
       case "battle":
-        return (
-          <div className="p-4 sm:p-6 lg:p-8">
-            <div className="max-w-7xl mx-auto">
-              <div className="text-center space-y-6">
-                <div className="text-6xl">⚔️</div>
-                <h2 className="text-3xl font-bold text-[#cd7f32]">
-                  Battle Arena
-                </h2>
-                <p className="text-gray-300 text-lg">
-                  Epic battles await! Test your skills and knowledge against
-                  other warriors.
-                </p>
-                <div className="bg-[#1a1a1a] border border-[#cd7f32]/30 rounded-lg p-6 max-w-md mx-auto">
-                  <h3 className="text-xl font-bold text-[#cd7f32] mb-3">
-                    Coming Soon
-                  </h3>
-                  <p className="text-gray-300 mb-4">
-                    The Battle Arena is under construction. Soon you'll be able
-                    to:
-                  </p>
-                  <ul className="text-left space-y-2 text-gray-300">
-                    <li className="flex items-center gap-2">
-                      <span className="text-[#cd7f32]">⚔️</span>
-                      <span>Challenge other players</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <span className="text-[#cd7f32]">🧠</span>
-                      <span>Learn through combat</span>
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <span className="text-[#cd7f32]">🏆</span>
-                      <span>Earn battle rewards</span>
-                    </li>
-                  </ul>
-                </div>
-                {selectedWarrior && (
-                  <div className="mt-6 p-4 bg-[#2a2a2a] border border-[#cd7f32]/50 rounded-lg max-w-sm mx-auto">
-                    <h4 className="text-lg font-bold text-[#cd7f32] mb-2">
-                      Selected Warrior
-                    </h4>
-                    <p className="text-gray-300">{selectedWarrior.name}</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        );
+        return router.push("/headquarters/battler-arena");
+        // return (
+        //   <div className="p-4 sm:p-6 lg:p-8">
+        //     <div className="max-w-7xl mx-auto">
+        //       <div className="text-center space-y-6">
+        //         <div className="text-6xl">⚔️</div>
+        //         <h2 className="text-3xl font-bold text-[#cd7f32]">
+        //           Battle Arena
+        //         </h2>
+        //         <p className="text-gray-300 text-lg">
+        //           Epic battles await! Test your skills and knowledge against
+        //           other warriors.
+        //         </p>
+        //         <div className="bg-[#1a1a1a] border border-[#cd7f32]/30 rounded-lg p-6 max-w-md mx-auto">
+        //           <h3 className="text-xl font-bold text-[#cd7f32] mb-3">
+        //             Coming Soon
+        //           </h3>
+        //           <p className="text-gray-300 mb-4">
+        //             The Battle Arena is under construction. Soon you'll be able
+        //             to:
+        //           </p>
+        //           <ul className="text-left space-y-2 text-gray-300">
+        //             <li className="flex items-center gap-2">
+        //               <span className="text-[#cd7f32]">⚔️</span>
+        //               <span>Challenge other players</span>
+        //             </li>
+        //             <li className="flex items-center gap-2">
+        //               <span className="text-[#cd7f32]">🧠</span>
+        //               <span>Learn through combat</span>
+        //             </li>
+        //             <li className="flex items-center gap-2">
+        //               <span className="text-[#cd7f32]">🏆</span>
+        //               <span>Earn battle rewards</span>
+        //             </li>
+        //           </ul>
+        //         </div>
+        //         {selectedWarrior && (
+        //           <div className="mt-6 p-4 bg-[#2a2a2a] border border-[#cd7f32]/50 rounded-lg max-w-sm mx-auto">
+        //             <h4 className="text-lg font-bold text-[#cd7f32] mb-2">
+        //               Selected Warrior
+        //             </h4>
+        //             <p className="text-gray-300">{selectedWarrior.name}</p>
+        //           </div>
+        //         )}
+        //       </div>
+        //     </div>
+        //   </div>
+        // );
       case "academy":
         return (
           <div className="p-4 sm:p-6 lg:p-8">
@@ -210,7 +214,7 @@ const HeadQuarters: React.FC = () => {
           </div>
         );
       default:
-        return <DashboardPage />;
+        return router.push("/headquaters/dashboard");;
     }
   };
 

@@ -1,42 +1,42 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import WarriorCard from "@/app/components/Card";
 import {
-  Sword,
-  Plus,
-  ExternalLink,
-  Zap,
-  Crown,
-  Trophy,
-  Activity,
-  Search,
-  RefreshCw,
-  Eye,
-  X,
-  Loader2,
-  Shield,
-  Copy,
-  Check,
-  AlertTriangle,
-  Star,
-  Flame,
-  Target,
-  Sparkles,
-  Users,
-  TrendingUp,
-  Diamond,
-} from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useGameData } from "@/hooks/useGameData";
-import { useUndeadProgram, usePDAs } from "@/hooks/useUndeadProgram";
-import {
+  VRFStage,
+  WARRIOR_CLASS_INFO,
   createWarriorWithVRF,
   generateRandomDNA,
-  WARRIOR_CLASS_INFO,
-  VRFStage,
 } from "@/hooks/useGameActions";
-import { PublicKey } from "@solana/web3.js";
+import { useGameData } from "@/hooks/useGameData";
+import { usePDAs, useUndeadProgram } from "@/hooks/useUndeadProgram";
 import { ImageRarity, Warrior, WarriorClass } from "@/types/undead";
-import WarriorCard from "@/app/components/Card";
+import { PublicKey } from "@solana/web3.js";
+import {
+  Activity,
+  AlertTriangle,
+  Check,
+  Copy,
+  Crown,
+  Diamond,
+  ExternalLink,
+  Eye,
+  Flame,
+  Loader2,
+  Plus,
+  RefreshCw,
+  Search,
+  Shield,
+  Sparkles,
+  Star,
+  Sword,
+  Target,
+  TrendingUp,
+  Trophy,
+  Users,
+  X,
+  Zap,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 interface NotificationState {
   message: string;
