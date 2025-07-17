@@ -57,17 +57,6 @@ const getRarityString = (imageRarity: ImageRarity) => {
   return "Common";
 };
 
-const getRarityColor = (rarity: string) => {
-  switch (rarity.toLowerCase()) {
-    case "rare":
-      return "from-purple-500/20 to-purple-600/30 border-purple-500/50";
-    case "uncommon":
-      return "from-blue-500/20 to-blue-600/30 border-blue-500/50";
-    default:
-      return "from-gray-500/20 to-gray-600/30 border-gray-500/50";
-  }
-};
-
 const Warriors = () => {
   const {
     isConnected,
@@ -598,7 +587,11 @@ const Warriors = () => {
                 </div>
 
                 {/* Level Badge - Always visible */}
-                <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-15 px-3 py-1 bg-black/60 backdrop-blur-sm border border-[#cd7f32]/30 rounded-full">
+                <div
+                  className={
+                    "absolute top-4 left-1/2 transform -translate-x-1/2 z-15 px-3 py-1 bg-black/60 backdrop-blur-sm border border-[#cd7f32]/30 rounded-full"
+                  }
+                >
                   <div className="flex items-center gap-1">
                     <Diamond className="w-3 h-3 text-[#cd7f32]" />
                     <span className="text-xs font-bold text-[#cd7f32]">
