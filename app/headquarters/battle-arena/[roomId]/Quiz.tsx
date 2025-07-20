@@ -1,77 +1,71 @@
 import React, { useState, useEffect } from "react";
 import FeedbackOverlay from "./FeedbackOverlay";
 import { CheckCircle, XCircle, AlertTriangle } from "lucide-react";
-
-interface Question {
-  id: number;
-  question: string;
-  correctAnswer: boolean;
-  explanation?: string;
-}
+import { Question } from "@/types/undead";
 
 interface RustQuizProps {
   playerName: string;
   onQuizComplete: (score: number, totalQuestions: number) => void;
 }
-const questions: Question[] = [
-  {
-    id: 1,
-    question: "In Rust, variables are mutable by default.",
-    correctAnswer: false,
-    explanation:
-      "Variables in Rust are immutable by default. You need to use 'mut' keyword to make them mutable.",
-  },
-  {
-    id: 2,
-    question: "Rust has a garbage collector for memory management.",
-    correctAnswer: false,
-    explanation:
-      "Rust uses ownership system for memory management, not a garbage collector.",
-  },
-  {
-    id: 3,
-    question: "The borrow checker prevents data races at compile time.",
-    correctAnswer: true,
-    explanation:
-      "The borrow checker ensures memory safety and prevents data races at compile time.",
-  },
-  {
-    id: 4,
-    question: "Rust allows null pointer dereferences.",
-    correctAnswer: false,
-    explanation:
-      "Rust prevents null pointer dereferences by not having null pointers. It uses Option<T> instead.",
-  },
-  {
-    id: 5,
-    question: "Traits in Rust are similar to interfaces in other languages.",
-    correctAnswer: true,
-    explanation:
-      "Traits define shared behavior that types can implement, similar to interfaces.",
-  },
-  {
-    id: 6,
-    question: "Rust supports inheritance like traditional OOP languages.",
-    correctAnswer: false,
-    explanation:
-      "Rust doesn't support inheritance. It uses composition and traits instead.",
-  },
-  {
-    id: 7,
-    question: "The 'match' keyword is used for pattern matching in Rust.",
-    correctAnswer: true,
-    explanation:
-      "The 'match' keyword is Rust's primary pattern matching construct.",
-  },
-  {
-    id: 8,
-    question:
-      "Rust's ownership system allows multiple mutable references to the same data.",
-    correctAnswer: false,
-    explanation:
-      "Rust's ownership system prevents multiple mutable references to the same data.",
-  },
-];
+// const questions: Question[] = [
+//   {
+//     id: 1,
+//     question: "In Rust, variables are mutable by default.",
+//     correct: false,
+//     explanation:
+//       "Variables in Rust are immutable by default. You need to use 'mut' keyword to make them mutable.",
+//   },
+//   {
+//     id: 2,
+//     question: "Rust has a garbage collector for memory management.",
+//     correct: false,
+//     explanation:
+//       "Rust uses ownership system for memory management, not a garbage collector.",
+//   },
+//   {
+//     id: 3,
+//     question: "The borrow checker prevents data races at compile time.",
+//     correct: true,
+//     explanation:
+//       "The borrow checker ensures memory safety and prevents data races at compile time.",
+//   },
+//   {
+//     id: 4,
+//     question: "Rust allows null pointer dereferences.",
+//     correct: false,
+//     explanation:
+//       "Rust prevents null pointer dereferences by not having null pointers. It uses Option<T> instead.",
+//   },
+//   {
+//     id: 5,
+//     question: "Traits in Rust are similar to interfaces in other languages.",
+//     correct: true,
+//     explanation:
+//       "Traits define shared behavior that types can implement, similar to interfaces.",
+//   },
+//   {
+//     id: 6,
+//     question: "Rust supports inheritance like traditional OOP languages.",
+//     correct: false,
+//     explanation:
+//       "Rust doesn't support inheritance. It uses composition and traits instead.",
+//   },
+//   {
+//     id: 7,
+//     question: "The 'match' keyword is used for pattern matching in Rust.",
+//     correct: true,
+//     explanation:
+//       "The 'match' keyword is Rust's primary pattern matching construct.",
+//   },
+//   {
+//     id: 8,
+//     question:
+//       "Rust's ownership system allows multiple mutable references to the same data.",
+//     correct: false,
+//     explanation:
+//       "Rust's ownership system prevents multiple mutable references to the same data.",
+//   },
+// ];
 
 const RustQuiz: React.FC<RustQuizProps> = ({ playerName, onQuizComplete }) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -84,9 +78,10 @@ const RustQuiz: React.FC<RustQuizProps> = ({ playerName, onQuizComplete }) => {
   >("correct");
   const [selectedAnswer, setSelectedAnswer] = useState<boolean | null>(null);
   const [isTimedOut, setIsTimedOut] = useState(false);
-
+  const [questions, setQuestions] = useState<Question[]>([]);
   const currentQuestion = questions[currentQuestionIndex];
-  const isLastQuestion = currentQuestionIndex === questions.length - 1;
+  const isLastQuestion =
+    questions && currentQuestionIndex === questions.length - 1;
 
   // Timer countdown
   useEffect(() => {
@@ -106,6 +101,13 @@ const RustQuiz: React.FC<RustQuizProps> = ({ playerName, onQuizComplete }) => {
     return () => clearInterval(timer);
   }, [currentQuestionIndex, isAnswered, isTimedOut]);
 
+  useEffect(() => {
+    if (typeof window !== undefined) {
+      const rawQuestions = localStorage.getItem("rust-undead-questions");
+      const parsedRawQuestions = rawQuestions ? JSON.parse(rawQuestions) : [];
+      setQuestions(parsedRawQuestions);
+    }
+  }, []);
   const handleTimeout = () => {
     setIsTimedOut(true);
     setFeedbackType("timeout");
@@ -118,7 +120,7 @@ const RustQuiz: React.FC<RustQuizProps> = ({ playerName, onQuizComplete }) => {
     setIsAnswered(true);
     setSelectedAnswer(answer);
 
-    const isCorrect = answer === currentQuestion.correctAnswer;
+    const isCorrect = answer === currentQuestion?.correct;
     if (isCorrect) {
       setScore(score + 1);
     }
@@ -130,7 +132,7 @@ const RustQuiz: React.FC<RustQuizProps> = ({ playerName, onQuizComplete }) => {
   const handleFeedbackComplete = () => {
     setShowFeedback(false);
 
-    if (isLastQuestion) {
+    if (isLastQuestion && questions) {
       onQuizComplete(score, questions.length);
     } else {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
@@ -216,7 +218,7 @@ const RustQuiz: React.FC<RustQuizProps> = ({ playerName, onQuizComplete }) => {
         {/* Question */}
         <div className="bg-black/30 rounded-2xl p-8 border border-[#cd7f32]/30 mb-8">
           <h3 className="text-xl md:text-2xl font-semibold text-white mb-6 text-center leading-relaxed">
-            {currentQuestion.question}
+            {currentQuestion?.text}
           </h3>
 
           {/* Answer Buttons */}
@@ -229,7 +231,7 @@ const RustQuiz: React.FC<RustQuizProps> = ({ playerName, onQuizComplete }) => {
                 ${
                   isAnswered
                     ? selectedAnswer === true
-                      ? currentQuestion.correctAnswer === true
+                      ? currentQuestion?.correct === true
                         ? "bg-green-600 border-green-400 text-white"
                         : "bg-red-600 border-red-400 text-white"
                       : "bg-gray-600 border-gray-500 text-gray-300 cursor-not-allowed"
@@ -251,7 +253,7 @@ const RustQuiz: React.FC<RustQuizProps> = ({ playerName, onQuizComplete }) => {
                 ${
                   isAnswered
                     ? selectedAnswer === false
-                      ? currentQuestion.correctAnswer === false
+                      ? currentQuestion?.correct === false
                         ? "bg-green-600 border-green-400 text-white"
                         : "bg-red-600 border-red-400 text-white"
                       : "bg-gray-600 border-gray-500 text-gray-300 cursor-not-allowed"
@@ -312,7 +314,7 @@ const RustQuiz: React.FC<RustQuizProps> = ({ playerName, onQuizComplete }) => {
 
       {/* Feedback Overlay */}
       <FeedbackOverlay
-        isCorrect={selectedAnswer === currentQuestion.correctAnswer}
+        isCorrect={selectedAnswer === currentQuestion?.correct}
         isVisible={showFeedback}
         onAnimationComplete={handleFeedbackComplete}
         playerName={playerName}

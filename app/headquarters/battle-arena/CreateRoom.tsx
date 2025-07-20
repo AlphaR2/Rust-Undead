@@ -88,9 +88,8 @@ const RoomCreation: React.FC<RoomCreationProps> = ({
     setIsCreating(false);
   };
 
-  const handleCopyLink = async () => {
-    const gameLink = safeRenderString(roomId);
-    await navigator.clipboard.writeText(gameLink);
+  const handleCopyLink = async (roomId: string | null) => {
+    await navigator.clipboard.writeText(roomId);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -412,7 +411,7 @@ const RoomCreation: React.FC<RoomCreationProps> = ({
 
                   {/* Compact Warrior Display */}
                   <div className="relative mb-3">
-                    <div className="w-24 h-24 mx-auto rounded-lg overflow-hidden border border-[#cd7f32]/30">
+                    <div className="h-[70%] w-[70%]  mx-auto rounded-lg overflow-hidden border border-[#cd7f32]/30">
                       <img
                         src={safeRenderString(selectedWarrior?.imageUri)}
                         alt={safeRenderString(selectedWarrior?.name)}
@@ -425,7 +424,7 @@ const RoomCreation: React.FC<RoomCreationProps> = ({
                   </div>
 
                   {/* Compact Warrior Info */}
-                  <h4 className="text-white font-bold text-sm mb-2 truncate">
+                  {/* <h4 className="text-white font-bold text-sm mb-2 truncate">
                     {safeRenderString(selectedWarrior?.name)}
                   </h4>
                   <div className="flex items-center justify-center gap-2 mb-3">
@@ -435,10 +434,10 @@ const RoomCreation: React.FC<RoomCreationProps> = ({
                     <span className="text-[#cd7f32] text-xs font-medium uppercase">
                       {getWarriorClassString(selectedWarrior?.warriorClass)}
                     </span>
-                  </div>
+                  </div> */}
 
                   {/* Mini Stats */}
-                  <div className="grid grid-cols-3 gap-2 text-xs">
+                  {/* <div className="grid grid-cols-3 gap-2 text-xs">
                     <div className="text-center">
                       <div className="text-red-400 font-bold">
                         {safeToNumber(selectedWarrior?.baseAttack)}
@@ -457,7 +456,7 @@ const RoomCreation: React.FC<RoomCreationProps> = ({
                       </div>
                       <div className="text-gray-500">KNW</div>
                     </div>
-                  </div>
+                  </div> */}
                 </div>
               </div>
 
@@ -473,26 +472,36 @@ const RoomCreation: React.FC<RoomCreationProps> = ({
                 </div>
 
                 {/* Compact Room Code */}
-                <div className="bg-[#cd7f32]/10 border border-[#cd7f32]/30 rounded-lg p-3 text-center">
-                  <div className="text-xs text-gray-400 mb-1">ROOM</div>
-                  <div className="text-[#cd7f32] font-mono font-bold text-sm tracking-wider">
+                <div className="bg-[#cd7f32]/10 border border-[#cd7f32]/30 rounded-lg p-3 text-center flex flex-col justify-evenly gap-y-2">
+                  <div className="text-xs text-gray-400 ">ROOM</div>
+                  <div className="text-[#cd7f32] font-mono font-bold text-xs tracking-wider">
                     {roomId ? safeRenderString(roomId) : "GENERATING..."}
+                  </div>
+                  <div>
+                    <h3 className="text-white font-bold text-base text-center flex items-center justify-center gap-2">
+                      <Copy
+                        size={20}
+                        className="text-[#cd7f32] cursor-pointer"
+                        onClick={() => handleCopyLink(roomId)}
+                      />
+                      Share Room Code
+                    </h3>
                   </div>
                 </div>
               </div>
 
               {/* Player 2 (Waiting) - Compact */}
               <div className="bg-gradient-to-br from-[#0f0f0f] to-[#1a1a1a] border-2 border-dashed border-gray-600 rounded-xl p-4 relative overflow-hidden">
-                <div className="relative z-10 text-center">
+                <div className="relative z-10 text-center  h-full">
                   <div className="w-3 h-3 bg-yellow-400 rounded-full mx-auto mb-2 animate-pulse"></div>
                   <h3 className="text-gray-400 font-bold text-sm mb-3">
                     OPPONENT
                   </h3>
 
                   {/* Compact Waiting Avatar */}
-                  <div className="relative mb-3">
-                    <div className="w-24 h-24 mx-auto rounded-lg overflow-hidden border border-gray-600/50 bg-gray-800/50 flex items-center justify-center">
-                      <div className="text-4xl text-gray-600 animate-pulse">
+                  <div className="relative mb-3 w-full h-full ">
+                    <div className="w-[70%] h-[70%] mx-auto rounded-lg overflow-hidden border border-gray-600/50 bg-gray-800/50 flex items-center justify-center">
+                      <div className="text-7xl w-full h-full text-gray-600 animate-pulse items-center justify-center flex">
                         👤
                       </div>
                     </div>
@@ -526,13 +535,13 @@ const RoomCreation: React.FC<RoomCreationProps> = ({
             </div>
 
             {/* Optimized Share Section */}
-            <div className="bg-gradient-to-r from-[#cd7f32]/10 to-[#ff8c42]/10 border border-[#cd7f32]/30 rounded-2xl p-5 mb-6">
+            {/* <div className="bg-gradient-to-r from-[#cd7f32]/10 to-[#ff8c42]/10 border border-[#cd7f32]/30 rounded-2xl p-5 mb-6">
               <h3 className="text-white font-bold text-lg mb-3 text-center flex items-center justify-center gap-2">
                 <Copy size={20} className="text-[#cd7f32]" />
                 Share Room Code
               </h3>
 
-              {/* Large, Prominent Room Code Display */}
+              
               <div className="bg-black/30 border-2 border-[#cd7f32]/50 rounded-xl p-4 mb-4">
                 <div className="text-center">
                   <div className="text-gray-400 text-sm mb-2">Room Code</div>
@@ -542,7 +551,7 @@ const RoomCreation: React.FC<RoomCreationProps> = ({
                 </div>
               </div>
 
-              {/* Copy Button */}
+
               <button
                 onClick={handleCopyLink}
                 disabled={!roomId}
@@ -564,7 +573,7 @@ const RoomCreation: React.FC<RoomCreationProps> = ({
                   </div>
                 )}
               </button>
-            </div>
+            </div> */}
 
             {/* Compact Action Buttons */}
             <div className="grid grid-cols-2 gap-4 mt-auto">

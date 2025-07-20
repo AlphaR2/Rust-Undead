@@ -272,3 +272,40 @@ export const convertToBattleRoom = (
     currentQuestionIndex: anchor.currentQuestion,
   };
 };
+
+interface MongoEntity {
+  _id: string;
+}
+
+// Question interface
+export interface Question extends MongoEntity {
+  question_id: number;
+  text: string;
+  correct: boolean;
+  explanation: string;
+}
+
+// Learning content interface
+interface LearningContent extends MongoEntity {
+  summary: string;
+  big_note: string[];
+  battle_relevance: string;
+}
+
+// Topic interface
+interface Topic extends MongoEntity {
+  topic_id: number;
+  title: string;
+  learning_content: LearningContent;
+  questions: Question[];
+}
+
+// Main concept interface
+export interface Concept extends MongoEntity {
+  concept_id: number;
+  title: string;
+  description: string;
+  topics: Topic[];
+  __v: number; // MongoDB version key
+}
+

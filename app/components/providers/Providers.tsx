@@ -1,7 +1,9 @@
 "use client";
+import { useState } from "react";
 import { PrivyProvider } from "@privy-io/react-auth";
 import { SolanaProvider } from "./SolanaProvider";
 import { ReactNode } from "react";
+import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
 
 const privyAppId = process.env.NEXT_PUBLIC_PRIVY_ID || "";
 
@@ -14,23 +16,27 @@ interface ProvidersProps {
 }
 
 export default function Providers({ children }: ProvidersProps) {
+  const [queryClient] = useState(() => new QueryClient());
+
   return (
-    <SolanaProvider>
-      <PrivyProvider
-        appId={privyAppId}
-        config={{
-          solanaClusters: [
-            { name: "devnet", rpcUrl: "https://api.devnet.solana.com" },
-          ],
-          embeddedWallets: {
-            solana: {
-              createOnLogin: "all-users",
+    <QueryClientProvider client={queryClient}>
+      <SolanaProvider>
+        <PrivyProvider
+          appId={privyAppId}
+          config={{
+            solanaClusters: [
+              { name: "devnet", rpcUrl: "https://api.devnet.solana.com" },
+            ],
+            embeddedWallets: {
+              solana: {
+                createOnLogin: "all-users",
+              },
             },
-          },
-        }}
-      >
-        {children}
-      </PrivyProvider>
-    </SolanaProvider>
+          }}
+        >
+          {children}
+        </PrivyProvider>
+      </SolanaProvider>
+    </QueryClientProvider>
   );
 }

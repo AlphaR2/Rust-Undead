@@ -1,40 +1,78 @@
 import React, { useState, useEffect } from "react";
-
+import { useQuery } from "@tanstack/react-query";
+import { generateRandomizedQuiz } from "@/app/components/BattleArena/ConceptGenerator";
+import { Question } from "@/types/undead";
 const ConceptsOverview: React.FC<{
   setGameMode: React.Dispatch<React.SetStateAction<string>>;
 }> = ({ setGameMode }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [timeLeft, setTimeLeft] = useState(300); // 5 minutes in seconds
   const [showModal, setShowModal] = useState(false);
+  const [conceptsPreview, setConceptsPreview] = useState<
+    {
+      title: string;
+      description: string;
+    }[]
+  >();
+ 
 
-  const rust_concepts = [
-    {
-      title: "Ownership",
-      description:
-        "Ownership is Rust's core memory safety model. Each value in Rust has a single owner, and when ownership is transferred, the previous variable becomes invalid. This system eliminates data races and ensures memory safety without a garbage collector.",
-    },
-    {
-      title: "Borrowing and References",
-      description:
-        "Borrowing allows you to refer to a value without taking ownership of it. References can be either immutable or mutable, but never both at the same time for the same data. This helps Rust enforce safe concurrency and prevent data corruption.",
-    },
-    {
-      title: "Pattern Matching",
-      description:
-        "Pattern matching in Rust uses the `match` keyword to destructure and compare values in a concise, readable way. It's commonly used with enums and Option/Result types, enabling robust error handling and control flow logic.",
-    },
-    {
-      title: "Traits",
-      description:
-        "Traits are similar to interfaces in other languages, defining shared behavior that types can implement. They enable polymorphism and allow for generic programming, making Rust code more flexible and reusable.",
-    },
-    {
-      title: "Concurrency with `tokio`",
-      description:
-        "`tokio` is a popular asynchronous runtime in Rust that enables scalable, non-blocking I/O operations. It powers concurrent applications using `async`/`await`, helping developers build fast, efficient network services and background jobs.",
-    },
-  ];
+  // const rust_concepts = [
+  //   {
+  //     title: "Ownership",
+  //     description:
+  //       "Ownership is Rust's core memory safety model. Each value in Rust has a single owner, and when ownership is transferred, the previous variable becomes invalid. This system eliminates data races and ensures memory safety without a garbage collector.",
+  //   },
+  //   {
+  //     title: "Borrowing and References",
+  //     description:
+  //       "Borrowing allows you to refer to a value without taking ownership of it. References can be either immutable or mutable, but never both at the same time for the same data. This helps Rust enforce safe concurrency and prevent data corruption.",
+  //   },
+  //   {
+  //     title: "Pattern Matching",
+  //     description:
+  //       "Pattern matching in Rust uses the `match` keyword to destructure and compare values in a concise, readable way. It's commonly used with enums and Option/Result types, enabling robust error handling and control flow logic.",
+  //   },
+  //   {
+  //     title: "Traits",
+  //     description:
+  //       "Traits are similar to interfaces in other languages, defining shared behavior that types can implement. They enable polymorphism and allow for generic programming, making Rust code more flexible and reusable.",
+  //   },
+  //   {
+  //     title: "Concurrency with `tokio`",
+  //     description:
+  //       "`tokio` is a popular asynchronous runtime in Rust that enables scalable, non-blocking I/O operations. It powers concurrent applications using `async`/`await`, helping developers build fast, efficient network services and background jobs.",
+  //   },
+  // ];
 
+  const getConcepts = async () => {
+    try {
+      const response = await fetch(
+        `https://poynt-sever.onrender.com/api/v1/concept`
+      );
+      const responseData = await response.json();
+      if (!response.ok) {
+        throw new Error("An error occured");
+      }
+      console.log(responseData);
+      return responseData.data;
+    } catch (err: any) {
+      console.log(err.message);
+    } finally {
+    }
+  };
+
+  const { data: conceptsRaw, error } = useQuery({
+    queryKey: ["concepts"],
+    queryFn: getConcepts,
+  });
+
+  useEffect(() => {
+    if (conceptsRaw) {
+      const { conceptInfo, questions } = generateRandomizedQuiz(conceptsRaw);
+      setConceptsPreview(conceptInfo);
+      localStorage.setItem("rust-undead-questions", JSON.stringify(questions));
+    }
+  }, [conceptsRaw]);
   // Timer countdown effect
   useEffect(() => {
     const timer = setInterval(() => {
@@ -64,7 +102,7 @@ const ConceptsOverview: React.FC<{
   const progressPercentage = ((300 - timeLeft) / 300) * 100;
 
   const handleNext = () => {
-    if (currentIndex < rust_concepts.length - 1) {
+    if (conceptsPreview && currentIndex < conceptsPreview.length - 1) {
       setCurrentIndex(currentIndex + 1);
     }
   };
@@ -95,8 +133,9 @@ const ConceptsOverview: React.FC<{
     return text.substring(0, maxLength) + "...";
   };
 
-  const currentConcept = rust_concepts[currentIndex];
-  const isLastConcept = currentIndex === rust_concepts.length - 1;
+  const currentConcept = conceptsPreview && conceptsPreview[currentIndex];
+  const isLastConcept =
+    conceptsPreview && currentIndex === conceptsPreview.length - 1;
 
   return (
     <div className="bg-gradient-to-br from-[#2a2a2a] via-[#1a1a1a] to-[#0f0f0f] border-2 border-[#cd7f32]/50 rounded-3xl p-8 md:p-10 max-w-5xl w-full max-h-[90vh] overflow-y-auto shadow-2xl relative z-40 flex items-center justify-center mx-auto">
@@ -162,7 +201,7 @@ const ConceptsOverview: React.FC<{
         {/* Progress indicator */}
         <div className="flex justify-center mb-8">
           <div className="flex space-x-2">
-            {rust_concepts.map((_, index) => (
+            {conceptsPreview?.map((_, index) => (
               <div
                 key={index}
                 className={`w-3 h-3 rounded-full transition-all duration-300 ${
@@ -181,21 +220,23 @@ const ConceptsOverview: React.FC<{
         <div className="flex-1 flex flex-col justify-center">
           <div className="bg-black/30 rounded-2xl p-8 border border-[#cd7f32]/30 mb-8">
             <h3 className="text-2xl md:text-3xl font-bold text-[#ff8c42] mb-6 text-center">
-              {currentConcept.title}
+              {currentConcept?.description && currentConcept.title}
             </h3>
             <p className="text-gray-200 text-lg leading-relaxed text-center mb-4">
-              {truncateDescription(currentConcept.description)}
+              {currentConcept?.description &&
+                truncateDescription(currentConcept.description)}
             </p>
-            {currentConcept.description.length > 150 && (
-              <div className="text-center">
-                <button
-                  onClick={openModal}
-                  className="text-[#cd7f32] hover:text-[#ff8c42] font-semibold underline transition-colors duration-200 cursor-pointer"
-                >
-                  See More
-                </button>
-              </div>
-            )}
+            {currentConcept?.description &&
+              currentConcept.description.length > 150 && (
+                <div className="text-center">
+                  <button
+                    onClick={openModal}
+                    className="text-[#cd7f32] hover:text-[#ff8c42] font-semibold underline transition-colors duration-200 cursor-pointer"
+                  >
+                    See More
+                  </button>
+                </div>
+              )}
           </div>
         </div>
 
@@ -214,7 +255,7 @@ const ConceptsOverview: React.FC<{
           </button>
 
           <span className="text-[#cd7f32] font-semibold">
-            {currentIndex + 1} of {rust_concepts.length}
+            {currentIndex + 1} of {conceptsPreview?.length}
           </span>
 
           {isLastConcept ? (
@@ -259,7 +300,7 @@ const ConceptsOverview: React.FC<{
               {/* Modal Header */}
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-2xl md:text-3xl font-bold text-[#ff8c42]">
-                  {currentConcept.title}
+                  {currentConcept?.title && currentConcept.title}
                 </h3>
                 <button
                   onClick={closeModal}
@@ -272,7 +313,7 @@ const ConceptsOverview: React.FC<{
               {/* Modal Content */}
               <div className="bg-black/30 rounded-xl p-6 border border-[#cd7f32]/30">
                 <p className="text-gray-200 text-lg leading-relaxed">
-                  {currentConcept.description}
+                  {currentConcept?.description && currentConcept.description}
                 </p>
               </div>
 
