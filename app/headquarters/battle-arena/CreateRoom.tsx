@@ -88,7 +88,7 @@ const RoomCreation: React.FC<RoomCreationProps> = ({
     setIsCreating(false);
   };
 
-  const handleCopyLink = async (roomId: string | null) => {
+  const handleCopyLink = async (roomId: string) => {
     await navigator.clipboard.writeText(roomId);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -482,7 +482,7 @@ const RoomCreation: React.FC<RoomCreationProps> = ({
                       <Copy
                         size={20}
                         className="text-[#cd7f32] cursor-pointer"
-                        onClick={() => handleCopyLink(roomId)}
+                        onClick={() => roomId && handleCopyLink(roomId)}
                       />
                       Share Room Code
                     </h3>

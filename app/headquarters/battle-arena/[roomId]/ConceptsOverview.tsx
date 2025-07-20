@@ -53,7 +53,6 @@ const ConceptsOverview: React.FC<{
       if (!response.ok) {
         throw new Error("An error occured");
       }
-      console.log(responseData);
       return responseData.data;
     } catch (err: any) {
       console.log(err.message);
